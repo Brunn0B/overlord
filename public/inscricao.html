@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscrição para Torneio PvP - Overlord Reference</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        :root {
+            --primary-color: #6a1b9a;
+            --secondary-color: #9c27b0;
+            --accent-color: #e91e63;
+            --dark-color: #1a1a1a;
+            --light-color: #f5f5f5;
+            --success-color: #4caf50;
+            --warning-color: #ff9800;
+            --error-color: #f44336;
+        }
+        
+        body {
+            background-color: var(--dark-color);
+            color: var(--light-color);
+            line-height: 1.6;
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: rgba(40, 40, 40, 0.8);
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--secondary-color);
+            position: relative;
+            padding-bottom: 10px;
+            font-size: 1.8rem;
+        }
+        
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 3px;
+            background: linear-gradient(to right, var(--primary-color), var(--accent-color));
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 5px;
+            border: 1px solid #444;
+            background-color: #333;
+            color: white;
+            font-size: 16px;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+        
+        .success-message {
+            display: none;
+            background-color: var(--success-color);
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .error-message {
+            display: none;
+            background-color: var(--error-color);
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .event-info {
+            background-color: rgba(30, 30, 30, 0.7);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-color);
+            margin-bottom: 25px;
+        }
+        
+        .event-info h2 {
+            color: var(--secondary-color);
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+        }
+        
+        .event-info p {
+            margin-bottom: 5px;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 10px;
+        }
+        
+        .loading i {
+            animation: spin 1s linear infinite;
+        }
+        
+        .weapon-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .weapon-option {
+            display: flex;
+            align-items: center;
+        }
+        
+        .weapon-option input {
+            width: auto;
+            margin-right: 8px;
+        }
+        
+        .weapon-option label {
+            margin-bottom: 0;
+            font-weight: normal;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 15px auto;
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .btn {
+                padding: 10px 15px;
+                font-size: 14px;
+            }
+            
+            input, select, textarea {
+                padding: 10px;
+                font-size: 14px;
+            }
+            
+            .weapon-options {
+                grid-template-columns: 1fr;
+            }
+        }
+
+         /* Modal de Regras */
+         .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: var(--dark-color);
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 2px solid var(--primary-color);
+            box-shadow: 0 0 20px rgba(106, 27, 154, 0.5);
+            position: relative;
+        }
+        
+        .modal-header {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .modal-header h2 {
+            color: var(--secondary-color);
+            font-size: 1.8rem;
+        }
+        
+        .modal-body {
+            margin-bottom: 20px;
+        }
+        
+        .rules-list {
+            list-style-type: none;
+        }
+        
+        .rules-list li {
+            margin-bottom: 15px;
+            padding-left: 25px;
+            position: relative;
+        }
+        
+        .rules-list li::before {
+            content: '\f00c';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            color: var(--secondary-color);
+            position: absolute;
+            left: 0;
+        }
+        
+        .modal-footer {
+            text-align: center;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: var(--light-color);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="rulesModal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal" id="closeModal">&times;</button>
+            <div class="modal-header">
+                <h2><i class="fas fa-scroll"></i> Regras do Torneio PvP</h2>
+            </div>
+            <div class="modal-body">
+                <p>Por favor, leia atentamente as regras do torneio antes de se inscrever:</p>
+                <ul class="rules-list">
+                    <li><strong>Warframes permitidos:</strong> Apenas Protoframes (aqueles com aparência humana, mas não é necessário ter a skin específica)</li>
+                    <li><strong>Armas permitidas:</strong> Somente armas MK1 (qualquer arma da série MK1)</li>
+                    <li><strong>Builds:</strong> Os warframes e armas podem estar completamente buildados</li>
+                    <li><strong>Encarnon:</strong> As armas podem ter encarnon ativado</li>
+                    <li><strong>Mods:</strong> Todos os mods são permitidos, desde que compatíveis com as armas/warframes permitidos</li>
+                    <li><strong>Fair play:</strong> Qualquer forma de trapaça ou exploração de bugs resultará em desqualificação</li>
+                    <li><strong>Conectividade:</strong> Cada jogador é responsável por sua própria conexão estável</li>
+                </ul>
+                <p style="margin-top: 20px; color: var(--accent-color); font-weight: bold;">
+                    <i class="fas fa-exclamation-triangle"></i> A equipe organizadora reserva-se o direito de desqualificar participantes que não cumpram estas regras.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button id="acceptRules" class="btn">Eu li e concordo com as regras</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h1 style="margin-bottom: 0;"><i class="fas fa-calendar-check"></i> Inscrição Torneio PvP</h1>
+            <a href="participantes.html" class="btn" style="width: auto; padding: 10px 15px;">
+                <i class="fas fa-users"></i> Ver Participantes
+            </a>
+            <a href="desafiantes.html" class="btn" style="width: auto; padding: 10px 15px;">
+                <i class="fas fa-fist-raised"></i> Ver Desafiantes
+            </a>
+        </div>
+        
+        <div id="eventInfo" class="event-info">
+            <h2 id="eventTitle">Torneio PvP - Protoframes vs MK1</h2>
+            <p><strong>Data:</strong> <span id="eventDate">A agendar</span></p>
+            <p><strong>Descrição:</strong> <span id="eventDescription">Torneio de Conclave com premiação em Platina para os três primeiros colocados.</span></p>
+        </div>
+        
+        <div id="successMessage" class="success-message">
+            <i class="fas fa-check-circle"></i> Inscrição realizada com sucesso! Você receberá mais informações em breve.
+        </div>
+        
+        <div id="errorMessage" class="error-message">
+            <i class="fas fa-exclamation-circle"></i> Ocorreu um erro ao processar sua inscrição. Por favor, tente novamente.
+        </div>
+        
+        <form id="registrationForm">
+            <div class="form-group">
+                <label for="nickname">Nick no Warframe</label>
+                <input type="text" id="nickname" name="nickname" required placeholder="Seu nickname no jogo">
+            </div>
+            
+            <div class="form-group">
+                <label for="mr">Maestria (MR)</label>
+                <input type="number" id="mr" name="mr" min="0" max="40" required placeholder="Seu Mastery Rank">
+            </div>
+            
+            <div class="form-group">
+                <label for="platform">Plataforma</label>
+                <select id="platform" name="platform" required>
+                    <option value="">Selecione sua plataforma</option>
+                    <option value="PC">PC</option>
+                    <option value="PlayStation">PlayStation</option>
+                    <option value="Xbox">Xbox</option>
+                    <option value="Nintendo Switch">Nintendo Switch</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="discord">Tag Discord</label>
+                <input type="text" id="discord" name="discord" required placeholder="usuário#1234">
+            </div>
+            
+            <div class="form-group">
+                <label for="protoframe">Protoframe Escolhido</label>
+                <select id="protoframe" name="protoframe" required>
+                    <option value="">Selecione seu Protoframe</option>
+                    <option value="Arthur (EXCALIBUR)">Arthur (EXCALIBUR)</option>
+                    <option value="Eleanor (NYX)">Eleanor (NYX)</option>
+                    <option value="Aoi (MAG)">Aoi (MAG)</option>
+                    <option value="Amir (VOLT)">Amir (VOLT)</option>
+                    <option value="Leticia (TRINITY)">Leticia (TRINITY)</option>
+                    <option value="Velimir (FROST)">Velimir (FROST)</option>
+                    <option value="Minerva (SARYN)">Minerva (SARYN)</option>
+                    <option value="Kaya (NOVA)">Kaya (NOVA)</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Armas Escolhidas (MK1)</label>
+                <div class="weapon-options">
+                    <div class="weapon-option">
+                        <input type="checkbox" id="bo-mk1" name="weapons" value="BO-mk1">
+                        <label for="bo-mk1">BO-mk1</label>
+                    </div>
+                    <div class="weapon-option">
+                        <input type="checkbox" id="braton-mk1" name="weapons" value="Braton-mk1">
+                        <label for="braton-mk1">Braton-mk1</label>
+                    </div>
+                    <div class="weapon-option">
+                        <input type="checkbox" id="furax-mk1" name="weapons" value="Furax-mk1">
+                        <label for="furax-mk1">Furax-mk1</label>
+                    </div>
+                    <div class="weapon-option">
+                        <input type="checkbox" id="furis-mk1" name="weapons" value="Furis-mk1">
+                        <label for="furis-mk1">Furis-mk1</label>
+                    </div>
+                    <div class="weapon-option">
+                        <input type="checkbox" id="kunai-mk1" name="weapons" value="Kunai-mk1">
+                        <label for="kunai-mk1">Kunai-mk1</label>
+                    </div>
+                    <div class="weapon-option">
+                        <input type="checkbox" id="paris-mk1" name="weapons" value="Paris-mk1">
+                        <label for="paris-mk1">Paris-mk1</label>
+                    </div>
+                    <div class="weapon-option">
+                        <input type="checkbox" id="strun-mk1" name="weapons" value="Strun-mk1">
+                        <label for="strun-mk1">Strun-mk1</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="agreeRules" required>
+                    Eu li e concordo com as regras do torneio
+                </label>
+            </div>
+            
+            <button type="submit" class="btn">Enviar Inscrição</button>
+            
+            <div id="loading" class="loading">
+                <i class="fas fa-spinner fa-2x"></i>
+            </div>
+        </form>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+               // Mostrar modal de regras ao carregar a página
+               const modal = document.getElementById('rulesModal');
+            const closeModal = document.getElementById('closeModal');
+            const acceptRules = document.getElementById('acceptRules');
+            
+            modal.style.display = 'flex';
+            
+            // Fechar modal ao clicar no X
+            closeModal.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+            
+            // Fechar modal ao clicar no botão de aceitar
+            acceptRules.addEventListener('click', function() {
+                modal.style.display = 'none';
+                document.getElementById('agreeRules').checked = true;
+            });
+            
+            // Fechar modal ao clicar fora do conteúdo
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                    document.getElementById('agreeRules').checked = true;
+                }
+            });
+    const form = document.getElementById('registrationForm');
+    const successMessage = document.getElementById('successMessage');
+    const errorMessage = document.getElementById('errorMessage');
+    const loading = document.getElementById('loading');
+    
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Verificar se o usuário concordou com as regras
+        if (!document.getElementById('agreeRules').checked) {
+            alert('Você deve concordar com as regras do torneio para se inscrever!');
+            return;
+        }
+        
+        // Mostrar loading
+        loading.style.display = 'block';
+        successMessage.style.display = 'none';
+        errorMessage.style.display = 'none';
+        
+        // Coletar dados do formulário
+        const selectedWeapons = Array.from(document.querySelectorAll('input[name="weapons"]:checked')).map(el => el.value);
+        
+        const formData = {
+            nickname: document.getElementById('nickname').value.trim(),
+            mr: parseInt(document.getElementById('mr').value),
+            platform: document.getElementById('platform').value,
+            discord: document.getElementById('discord').value.trim(),
+            protoframe: document.getElementById('protoframe').value,
+            weapons: selectedWeapons,
+            agreedToRules: true
+        };
+        
+        // Validação básica dos campos
+        if (!formData.nickname || !formData.discord || !formData.protoframe || isNaN(formData.mr)) {
+            showError('Por favor, preencha todos os campos obrigatórios corretamente');
+            return;
+        }
+
+        if (formData.weapons.length === 0) {
+            showError('Selecione pelo menos uma arma MK1');
+            return;
+        }
+
+        try {
+            // Obter URL base dinamicamente
+            const baseUrl = window.location.origin;
+            
+            console.log('Enviando dados para:', `${baseUrl}/api/registrations`);
+            console.log('Dados enviados:', formData);
+            
+            // Enviar dados para o servidor
+            const response = await fetch(`${baseUrl}/api/registrations`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            });
+            
+            const result = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(result.error || result.message || 'Erro no servidor');
+            }
+            
+            // Mostrar mensagem de sucesso
+            successMessage.style.display = 'block';
+            successMessage.innerHTML = `
+                <i class="fas fa-check-circle"></i> 
+                ${result.message || 'Inscrição realizada com sucesso!'}
+            `;
+            form.reset();
+            
+            // Rolar para a mensagem de sucesso
+            successMessage.scrollIntoView({ behavior: 'smooth' });
+            
+        } catch (error) {
+            console.error('Erro completo:', error);
+            showError(error.message || 'Ocorreu um erro ao processar sua inscrição');
+        } finally {
+            loading.style.display = 'none';
+        }
+    });
+
+    function showError(message) {
+        errorMessage.style.display = 'block';
+        errorMessage.innerHTML = `
+            <i class="fas fa-exclamation-circle"></i> ${message}
+        `;
+        errorMessage.scrollIntoView({ behavior: 'smooth' });
+        loading.style.display = 'none';
+    }
+});
+</script>
+</body>
+</html>

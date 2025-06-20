@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Torneio PvP - Chaveamento</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        :root {
+            --primary-color: #6a1b9a;
+            --secondary-color: #9c27b0;
+            --accent-color: #e91e63;
+            --dark-color: #1a1a1a;
+            --light-color: #f5f5f5;
+            --success-color: #4caf50;
+            --warning-color: #ff9800;
+            --error-color: #f44336;
+            --battle-color: #ff5722;
+            --connector-color: #555;
+            --bye-color: #607d8b;
+        }
+        
+        body {
+            background-color: var(--dark-color);
+            color: var(--light-color);
+            line-height: 1.6;
+            overflow-x: auto;
+            min-width: 320px;
+        }
+        
+        .container {
+            width: 95%;
+            max-width: 1800px;
+            margin: 20px auto;
+            padding: 15px;
+            background-color: rgba(40, 40, 40, 0.8);
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--secondary-color);
+            position: relative;
+            padding-bottom: 10px;
+            font-size: 1.8rem;
+        }
+        
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 3px;
+            background: linear-gradient(to right, var(--primary-color), var(--accent-color));
+        }
+        
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 15px 0;
+            gap: 10px;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .btn:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+        
+        .btn-battle {
+            background-color: var(--battle-color);
+        }
+        
+        .btn-battle:hover {
+            background-color: #e64a19;
+        }
+        
+        .loading {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 16px;
+        }
+        
+        .loading i {
+            animation: spin 1s linear infinite;
+        }
+        
+        .error-message {
+            display: none;
+            color: var(--error-color);
+            text-align: center;
+            margin: 15px 0;
+            padding: 10px;
+            background-color: rgba(244, 67, 54, 0.1);
+            border-radius: 5px;
+        }
+        
+        /* Estilo do chaveamento */
+        .tournament-bracket {
+            display: flex;
+            min-width: fit-content;
+            margin: 30px 0;
+            overflow-x: auto;
+            padding-bottom: 20px;
+        }
+        
+        .bracket-round {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            flex: 1;
+            min-width: 220px;
+            position: relative;
+        }
+        
+        .round-title {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--accent-color);
+            font-weight: bold;
+            padding: 5px;
+            background-color: rgba(106, 27, 154, 0.2);
+            border-radius: 5px;
+            position: sticky;
+            left: 0;
+        }
+        
+        .bracket-match {
+            margin: 15px 0;
+            position: relative;
+        }
+        
+        .match-connector {
+            position: absolute;
+            width: 20px;
+            height: 50%;
+            right: -20px;
+            z-index: 1;
+        }
+        
+        .match-connector.top {
+            top: 50%;
+            border-right: 2px solid var(--connector-color);
+            border-top: 2px solid var(--connector-color);
+            border-top-right-radius: 5px;
+        }
+        
+        .match-connector.bottom {
+            top: 0;
+            border-right: 2px solid var(--connector-color);
+            border-bottom: 2px solid var(--connector-color);
+            border-bottom-right-radius: 5px;
+        }
+        
+        .match-participants {
+            border: 1px solid #444;
+            border-radius: 5px;
+            overflow: hidden;
+            position: relative;
+            z-index: 2;
+            background-color: rgba(50, 50, 50, 0.7);
+        }
+        
+        .participant {
+            padding: 8px 12px;
+            background-color: rgba(60, 60, 60, 0.7);
+            border-bottom: 1px solid #444;
+            position: relative;
+            min-height: 40px;
+            transition: all 0.2s ease;
+        }
+        
+        .participant:last-child {
+            border-bottom: none;
+        }
+        
+        .participant.winner {
+            background-color: rgba(76, 175, 80, 0.3);
+            border-left: 3px solid var(--success-color);
+        }
+        
+        .participant.bye {
+            background-color: rgba(96, 125, 139, 0.3);
+            color: #aaa;
+        }
+        
+        .participant .name {
+            font-weight: bold;
+            margin-right: 25px;
+        }
+        
+        .participant .details {
+            font-size: 0.8rem;
+            color: #aaa;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .participant .select-winner {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--success-color);
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 3;
+        }
+        
+        .participant:hover .select-winner {
+            opacity: 1;
+        }
+        
+        .final-winner {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            background-color: rgba(106, 27, 154, 0.3);
+            border-radius: 10px;
+            border: 2px solid var(--success-color);
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .final-winner h2 {
+            color: var(--success-color);
+            margin-bottom: 10px;
+        }
+        
+        .final-winner .winner-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: gold;
+            margin-bottom: 10px;
+        }
+        
+        /* Responsividade */
+        @media (max-width: 1200px) {
+            .bracket-round {
+                min-width: 200px;
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .bracket-round {
+                min-width: 180px;
+            }
+            
+            .participant .name {
+                font-size: 0.9rem;
+            }
+            
+            .participant .details {
+                font-size: 0.7rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .btn {
+                padding: 8px 15px;
+                font-size: 14px;
+            }
+            
+            .bracket-round {
+                min-width: 160px;
+            }
+            
+            .participant {
+                padding: 6px 10px;
+                min-height: 36px;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .tournament-bracket {
+                flex-direction: column;
+            }
+            
+            .bracket-round {
+                margin-bottom: 30px;
+            }
+            
+            .bracket-match {
+                margin: 10px 0;
+            }
+            
+            .match-connector {
+                display: none;
+            }
+            
+            .round-title {
+                position: static;
+                margin-bottom: 10px;
+            }
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-trophy"></i> Chaveamento do Torneio PvP</h1>
+        
+        <div class="btn-group">
+            <a href="inscricao.html" class="btn"><i class="fas fa-arrow-left"></i> Voltar</a>
+            <button id="generateBracketBtn" class="btn btn-battle"><i class="fas fa-random"></i> Gerar Chaveamento</button>
+            <button id="saveResultsBtn" class="btn" disabled><i class="fas fa-save"></i> Salvar Progresso</button>
+            <button id="resetBracketBtn" class="btn" style="background-color: var(--error-color);"><i class="fas fa-redo"></i> Reiniciar</button>
+        </div>
+        
+        <div id="loading" class="loading" style="display: none;">
+            <i class="fas fa-spinner fa-2x"></i>
+            <p>Carregando participantes...</p>
+        </div>
+        
+        <div id="errorMessage" class="error-message">
+            <i class="fas fa-exclamation-circle"></i> <span id="errorText"></span>
+        </div>
+        
+        <div id="bracketContainer">
+            <div style="text-align: center; padding: 40px; color: #777;">
+                <i class="fas fa-trophy fa-4x" style="margin-bottom: 20px;"></i>
+                <h3>Torneio PvP - Protoframes vs MK1</h3>
+                <p>Clique em "Gerar Chaveamento" para começar o torneio</p>
+            </div>
+        </div>
+        
+        <div id="finalWinner" class="final-winner">
+            <h2><i class="fas fa-crown"></i> CAMPEÃO DO TORNEIO</h2>
+            <div class="winner-name" id="winnerName"></div>
+            <div class="winner-details" id="winnerDetails"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elementos da interface
+            const generateBracketBtn = document.getElementById('generateBracketBtn');
+            const saveResultsBtn = document.getElementById('saveResultsBtn');
+            const resetBracketBtn = document.getElementById('resetBracketBtn');
+            const loading = document.getElementById('loading');
+            const errorMessage = document.getElementById('errorMessage');
+            const bracketContainer = document.getElementById('bracketContainer');
+            const finalWinner = document.getElementById('finalWinner');
+            const winnerName = document.getElementById('winnerName');
+            const winnerDetails = document.getElementById('winnerDetails');
+            
+            let tournamentParticipants = [];
+            let bracket = [];
+            let currentRound = 0;
+            
+            const BYE_PARTICIPANT = {
+                _id: 'BYE',
+                nickname: 'BYE',
+                protoframe: '',
+                mr: 0,
+                platform: ''
+            };
+    
+            async function loadParticipants() {
+                try {
+                    loading.style.display = 'block';
+                    errorMessage.style.display = 'none';
+                    
+                    const baseUrl = window.location.origin;
+                    const apiUrl = `${baseUrl}/api/registrations`;
+                    
+                    const response = await fetch(apiUrl, {
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`Erro ${response.status}: ${errorText}`);
+                    }
+                    
+                    const result = await response.json();
+                    
+                    if (Array.isArray(result)) {
+                        return result;
+                    } else if (result.success && Array.isArray(result.data)) {
+                        return result.data;
+                    } else {
+                        throw new Error('Formato de dados não reconhecido');
+                    }
+                    
+                } catch (error) {
+                    console.error('Erro ao carregar participantes:', error);
+                    errorMessage.style.display = 'block';
+                    document.getElementById('errorText').textContent = 
+                        'Falha ao carregar participantes: ' + error.message;
+                    return null;
+                } finally {
+                    loading.style.display = 'none';
+                }
+            }
+    
+            // Função auxiliar para encontrar participante por ID
+            function getParticipantById(id) {
+                if (id === 'BYE') return BYE_PARTICIPANT;
+                const found = tournamentParticipants.find(p => p._id === id);
+                if (!found) console.warn('Participante não encontrado:', id);
+                return found || null;
+            }
+    
+            // Função para gerar as próximas rodadas
+            function generateNextRounds() {
+                const currentRoundMatches = bracket[currentRound - 1].matches;
+                
+                // Verifica se chegamos à final
+                if (currentRoundMatches.length === 1 && currentRoundMatches[0].winner) {
+                    showFinalWinner(currentRoundMatches[0].winner);
+                    return;
+                }
+                
+                const nextRoundNumber = currentRound + 1;
+                const nextRound = {
+                    round: nextRoundNumber,
+                    matches: []
+                };
+                
+                // Cria os combates para a próxima rodada
+                for (let i = 0; i < currentRoundMatches.length; i += 2) {
+                    const currentMatch1 = currentRoundMatches[i];
+                    const currentMatch2 = currentRoundMatches[i + 1];
+                    
+                    // Só cria combate se houver vencedores definidos
+                    const hasWinner1 = currentMatch1?.winner || currentMatch1?.fighter2._id === 'BYE';
+                    const hasWinner2 = !currentMatch2 || currentMatch2?.winner || currentMatch2?.fighter2._id === 'BYE';
+                    
+                    if (hasWinner1 && hasWinner2) {
+                        const match = {
+                            id: `r${nextRoundNumber}-m${nextRound.matches.length + 1}`,
+                            fighter1: getParticipantById(currentMatch1.winner || currentMatch1.fighter1._id),
+                            fighter2: currentMatch2 ? 
+                                    getParticipantById(currentMatch2.winner || currentMatch2.fighter1._id) : 
+                                    BYE_PARTICIPANT,
+                            winner: null
+                        };
+                        
+                        nextRound.matches.push(match);
+                    }
+                }
+                
+                if (nextRound.matches.length > 0) {
+                    bracket.push(nextRound);
+                }
+            }
+    
+            // Função para exibir o chaveamento na tela
+            function displayBracket() {
+                if (!bracket || bracket.length === 0) {
+                    bracketContainer.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: #777;">
+                            <i class="fas fa-trophy fa-4x" style="margin-bottom: 20px;"></i>
+                            <h3>Torneio PvP - Protoframes vs MK1</h3>
+                            <p>Nenhum chaveamento gerado ainda. Clique em "Gerar Chaveamento" para começar.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                let bracketHTML = '<div class="tournament-bracket">';
+                
+                // Gera o HTML para cada rodada
+                bracket.forEach((round, roundIndex) => {
+                    bracketHTML += `
+                        <div class="bracket-round">
+                            <div class="round-title">${
+                                round.round === 1 ? 'Primeira Rodada' : 
+                                round.round === bracket.length ? 'Final' : 
+                                `Rodada ${round.round}`
+                            }</div>
+                    `;
+                    
+                    // Gera o HTML para cada combate
+                    round.matches.forEach((match, matchIndex) => {
+                        const fighter1 = match.fighter1;
+                        const fighter2 = match.fighter2;
+                        const isBye = fighter2._id === 'BYE';
+                        
+                        bracketHTML += `
+                            <div class="bracket-match" data-match-id="${match.id}">
+                                <div class="match-participants">
+                                    <div class="participant 
+                                        ${match.winner === fighter1._id ? 'winner' : ''} 
+                                        ${fighter1._id === 'BYE' ? 'bye' : ''}" 
+                                        data-fighter-id="${fighter1._id}">
+                                        ${renderParticipant(fighter1, match, isBye)}
+                                    </div>
+                                    <div class="participant 
+                                        ${match.winner === fighter2._id ? 'winner' : ''} 
+                                        ${fighter2._id === 'BYE' ? 'bye' : ''}" 
+                                        data-fighter-id="${fighter2._id}">
+                                        ${renderParticipant(fighter2, match, isBye)}
+                                    </div>
+                                </div>
+                                ${renderConnectors(matchIndex, roundIndex)}
+                            </div>
+                        `;
+                    });
+                    
+                    bracketHTML += `</div>`;
+                });
+                
+                bracketHTML += `</div>`;
+                bracketContainer.innerHTML = bracketHTML;
+            }
+            
+            function renderParticipant(participant, match, isBye) {
+                if (participant._id === 'BYE') return 'BYE';
+                
+                return `
+                    <div class="name">${participant.nickname}</div>
+                    <div class="details">
+                        <span>${participant.protoframe}</span>
+                        <span>MR ${participant.mr}</span>
+                    </div>
+                    ${!match.winner && !isBye ? `
+                        <button class="select-winner" onclick="selectWinner('${match.id}', '${participant._id}')">
+                            <i class="fas fa-trophy"></i>
+                        </button>
+                    ` : ''}
+                `;
+            }
+            
+            function renderConnectors(matchIndex, roundIndex) {
+                if (roundIndex >= bracket.length - 1) return '';
+                
+                if (matchIndex % 2 === 0) {
+                    return '<div class="match-connector top"></div>';
+                } else {
+                    return '<div class="match-connector bottom"></div>';
+                }
+            }
+            
+            window.selectWinner = function(matchId, winnerId) {
+                const roundIndex = bracket.findIndex(round => 
+                    round.matches.some(match => match.id === matchId));
+                if (roundIndex === -1) return;
+                
+                const matchIndex = bracket[roundIndex].matches.findIndex(match => 
+                    match.id === matchId);
+                if (matchIndex === -1) return;
+                
+                bracket[roundIndex].matches[matchIndex].winner = winnerId;
+                
+                const roundCompleted = bracket[roundIndex].matches.every(match => 
+                    match.winner || match.fighter2._id === 'BYE');
+                
+                if (roundCompleted) {
+                    updateNextRoundMatches(roundIndex);
+                    
+                    if (roundIndex === bracket.length - 1) {
+                        generateNextRounds();
+                        currentRound++;
+                    }
+                }
+                
+                displayBracket();
+                saveResultsBtn.disabled = false;
+            };
+    
+            function updateNextRoundMatches(roundIndex) {
+                if (roundIndex >= bracket.length - 1) return;
+                
+                const currentRoundMatches = bracket[roundIndex].matches;
+                const nextRound = bracket[roundIndex + 1];
+                
+                for (let i = 0; i < currentRoundMatches.length; i += 2) {
+                    const matchIndex = Math.floor(i / 2);
+                    if (matchIndex >= nextRound.matches.length) break;
+                    
+                    const currentMatch1 = currentRoundMatches[i];
+                    const currentMatch2 = currentRoundMatches[i + 1];
+                    
+                    nextRound.matches[matchIndex].fighter1 = 
+                        getParticipantById(currentMatch1.winner || currentMatch1.fighter1._id);
+                    
+                    nextRound.matches[matchIndex].fighter2 = currentMatch2 ? 
+                        getParticipantById(currentMatch2.winner || currentMatch2.fighter1._id) : 
+                        BYE_PARTICIPANT;
+                }
+            }
+    
+            function showFinalWinner(winnerId) {
+                const winner = getParticipantById(winnerId);
+                if (!winner) return;
+                
+                winnerName.textContent = winner.nickname;
+                winnerDetails.innerHTML = `
+                    <p>Protoframe: ${winner.protoframe}</p>
+                    <p>MR: ${winner.mr}</p>
+                    <p>Plataforma: ${winner.platform}</p>
+                `;
+                
+                finalWinner.style.display = 'block';
+                bracket[bracket.length - 1].completed = true;
+                saveResultsBtn.disabled = false;
+            }
+            
+            async function saveTournamentProgress() {
+                try {
+                    loading.style.display = 'block';
+                    errorMessage.style.display = 'none';
+                    
+                    const baseUrl = window.location.origin;
+                    const response = await fetch(`${baseUrl}/api/tournament`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            participants: tournamentParticipants.map(p => p._id),
+                            bracket: bracket,
+                            currentRound: currentRound,
+                            completed: finalWinner.style.display === 'block',
+                            winner: finalWinner.style.display === 'block' ? 
+                                tournamentParticipants.find(p => p.nickname === winnerName.textContent)._id : null
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Falha ao salvar o progresso');
+                    }
+                    
+                    alert('Progresso do torneio salvo com sucesso!');
+                    
+                } catch (error) {
+                    console.error('Erro ao salvar progresso:', error);
+                    errorMessage.style.display = 'block';
+                    document.getElementById('errorText').textContent = 
+                        'Erro ao salvar: ' + error.message;
+                } finally {
+                    loading.style.display = 'none';
+                }
+            }
+            
+            function resetBracket() {
+                if (confirm('Tem certeza que deseja reiniciar o chaveamento? Todos os progressos serão perdidos.')) {
+                    tournamentParticipants = [];
+                    bracket = [];
+                    currentRound = 0;
+                    finalWinner.style.display = 'none';
+                    saveResultsBtn.disabled = true;
+                    displayBracket();
+                }
+            }
+            async function generateBracket() {
+                try {
+                    const participants = await loadParticipants();
+                    
+                    if (!participants || !Array.isArray(participants)) {
+                        throw new Error('Dados de participantes inválidos');
+                    }
+                    
+                    if (participants.length < 2) {
+                        throw new Error(`São necessários pelo menos 2 participantes`);
+                    }
+                    
+                    tournamentParticipants = [...participants];
+                    bracket = [];
+                    currentRound = 0;
+                    
+                    // Embaralha os participantes
+                    const shuffled = [...tournamentParticipants]
+                        .sort(() => Math.random() - 0.5);
+                    
+                    // Cria a primeira rodada
+                    const firstRound = {
+                        round: 1,
+                        matches: []
+                    };
+                    
+                    // Cria os combates iniciais
+                    for (let i = 0; i < shuffled.length; i += 2) {
+                        const match = {
+                            id: `r1-m${firstRound.matches.length + 1}`,
+                            fighter1: shuffled[i],
+                            fighter2: i + 1 < shuffled.length ? shuffled[i + 1] : BYE_PARTICIPANT,
+                            winner: shuffled[i + 1] ? null : shuffled[i]._id // Avança automaticamente se for BYE
+                        };
+                        
+                        firstRound.matches.push(match);
+                    }
+                    
+                    bracket.push(firstRound);
+                    currentRound = 1;
+                    
+                    // Gera as próximas rodadas
+                    generateNextRounds();
+                    
+                    displayBracket();
+                    saveResultsBtn.disabled = false;
+                    
+                } catch (error) {
+                    console.error('Erro ao gerar chaveamento:', error);
+                    errorMessage.style.display = 'block';
+                    document.getElementById('errorText').textContent = error.message;
+                }
+            }
+            
+            // Carrega um torneio existente ao iniciar
+            async function checkExistingTournament() {
+                try {
+                    loading.style.display = 'block';
+                    
+                    const baseUrl = window.location.origin;
+                    const response = await fetch(`${baseUrl}/api/tournament`);
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        
+                        if (data && data.data) {
+                            const tournament = data.data;
+                            const participantsResponse = await fetch(`${baseUrl}/api/registrations`);
+                            
+                            if (participantsResponse.ok) {
+                                const participantsData = await participantsResponse.json();
+                                let participantsArray;
+                                
+                                if (Array.isArray(participantsData)) {
+                                    participantsArray = participantsData;
+                                } else if (participantsData.success && Array.isArray(participantsData.data)) {
+                                    participantsArray = participantsData.data;
+                                } else {
+                                    throw new Error('Formato de participantes inválido');
+                                }
+                                
+                                tournamentParticipants = participantsArray;
+                                
+                                // Reconstroi o bracket com os dados salvos
+                                bracket = tournament.bracket.map(round => {
+                                    return {
+                                        ...round,
+                                        matches: round.matches.map(match => {
+                                            const fighter1 = match.fighter1 === 'BYE' ? 
+                                                BYE_PARTICIPANT : match.fighter1;
+                                            const fighter2 = match.fighter2 === 'BYE' ? 
+                                                BYE_PARTICIPANT : match.fighter2;
+                                            
+                                            return {
+                                                ...match,
+                                                fighter1: fighter1 ? 
+                                                    participantsArray.find(p => p._id === fighter1) || fighter1 : null,
+                                                fighter2: fighter2 ? 
+                                                    participantsArray.find(p => p._id === fighter2) || fighter2 : null,
+                                                winner: match.winner ? 
+                                                    participantsArray.find(p => p._id === match.winner) || match.winner : null
+                                            };
+                                        })
+                                    };
+                                });
+                                
+                                currentRound = tournament.currentRound;
+                                displayBracket();
+                                saveResultsBtn.disabled = false;
+                                
+                                if (tournament.completed && tournament.winner) {
+                                    const winner = participantsArray.find(p => p._id === tournament.winner);
+                                    if (winner) {
+                                        showFinalWinner(winner._id);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('Erro ao verificar torneio existente:', error);
+                } finally {
+                    loading.style.display = 'none';
+                }
+            }
+            
+            // Event listeners
+            generateBracketBtn.addEventListener('click', generateBracket);
+            saveResultsBtn.addEventListener('click', saveTournamentProgress);
+            resetBracketBtn.addEventListener('click', resetBracket);
+            
+            // Verifica se há um torneio em andamento ao carregar a página
+            checkExistingTournament();
+        });
+    </script>
+</body>
+</html>
