@@ -36,7 +36,7 @@ const UserSchema = new mongoose.Schema({
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    balance: { type: Number, default: 1000 },
+    balance: { type: Number, default: 5 },
     isAdmin: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now }
 });
