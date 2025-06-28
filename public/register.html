@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warframe Bicho - Registrar</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #F7931E;
+            --secondary: #00B4FF;
+            --dark: #1A1A2E;
+            --light: #E6F1FF;
+            --success: #4CAF50;
+            --error: #E53935;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--dark), #16213E);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .auth-container {
+            width: 100%;
+            max-width: 400px;
+            background: rgba(30, 30, 46, 0.95);
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .logo img {
+            width: 100px;
+            height: auto;
+            margin-bottom: 15px;
+        }
+        
+        .logo h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .logo p {
+            color: var(--light);
+            opacity: 0.8;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--light);
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(10, 10, 20, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(0, 180, 255, 0.2);
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #FF9E2C;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: var(--secondary);
+            border: 1px solid var(--secondary);
+            margin-top: 15px;
+        }
+        
+        .error-message {
+            color: var(--error);
+            font-size: 13px;
+            margin-top: 5px;
+            display: none;
+            font-weight: 500;
+        }
+        
+        .success-message {
+            color: var(--success);
+            font-size: 13px;
+            margin-top: 5px;
+            display: none;
+            font-weight: 500;
+        }
+        
+        .visible {
+            display: block;
+        }
+        
+        .loading {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .password-strength {
+            margin-top: 5px;
+            font-size: 12px;
+            display: none;
+        }
+        
+        .strength-weak { color: #E53935; }
+        .strength-medium { color: #FFC107; }
+        .strength-strong { color: #4CAF50; }
+        
+        .footer {
+            text-align: center;
+            margin-top: 25px;
+            color: var(--light);
+            opacity: 0.7;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="logo">
+            <img src="img/OIP-removebg-preview.png" alt="Warframe Bicho">
+            <h1>Criar Conta</h1>
+            <p>Junte-se à comunidade Tenno</p>
+        </div>
+        
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="name">Nome</label>
+                <input type="text" id="name" required placeholder="Seu nome completo">
+                <div class="error-message" id="name-error"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" required placeholder="seu@email.com">
+                <div class="error-message" id="email-error"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Senha</label>
+                <input type="password" id="password" required placeholder="••••••••">
+                <div class="password-strength" id="password-strength"></div>
+                <div class="error-message" id="password-error"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="confirmPassword">Confirmar Senha</label>
+                <input type="password" id="confirmPassword" required placeholder="••••••••">
+                <div class="error-message" id="confirmPassword-error"></div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" id="registerBtn">
+                <span id="registerText">Registrar</span>
+                <span id="registerSpinner" class="loading" style="display: none;"></span>
+            </button>
+            
+            <div class="success-message" id="success-message"></div>
+            
+            <button type="button" id="loginBtn" class="btn btn-secondary">Já tem conta? Faça login</button>
+        </form>
+        
+        <div class="footer">
+            Ao se registrar, você concorda com nossos Termos de Serviço
+        </div>
+    </div>
+
+    <script>
+        // Elementos DOM
+        const registerForm = document.getElementById('registerForm');
+        const passwordInput = document.getElementById('password');
+        const passwordStrength = document.getElementById('password-strength');
+        
+        // Verificar força da senha em tempo real
+        passwordInput.addEventListener('input', function() {
+            const password = this.value;
+            if (!password) {
+                passwordStrength.style.display = 'none';
+                return;
+            }
+            
+            passwordStrength.style.display = 'block';
+            const strength = calculatePasswordStrength(password);
+            
+            if (strength <= 2) {
+                passwordStrength.textContent = 'Senha fraca';
+                passwordStrength.className = 'password-strength strength-weak';
+            } else if (strength <= 4) {
+                passwordStrength.textContent = 'Senha média';
+                passwordStrength.className = 'password-strength strength-medium';
+            } else {
+                passwordStrength.textContent = 'Senha forte';
+                passwordStrength.className = 'password-strength strength-strong';
+            }
+        });
+        
+        // Submit do formulário
+        registerForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Obter valores
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim().toLowerCase();
+            const password = document.getElementById('password').value.trim();
+            const confirmPassword = document.getElementById('confirmPassword').value.trim();
+            
+            // Resetar erros
+            resetErrors();
+            
+            // Validar campos
+            if (!validateForm(name, email, password, confirmPassword)) {
+                return;
+            }
+            
+            // Enviar dados para registro
+            await registerUser(name, email, password);
+        });
+        
+        // Botão de login
+        document.getElementById('loginBtn').addEventListener('click', function() {
+            window.location.href = 'login.html';
+        });
+        
+        // Funções auxiliares
+        function calculatePasswordStrength(password) {
+            let strength = 0;
+            if (password.length >= 8) strength++;
+            if (password.match(/[a-z]/)) strength++;
+            if (password.match(/[A-Z]/)) strength++;
+            if (password.match(/[0-9]/)) strength++;
+            if (password.match(/[^a-zA-Z0-9]/)) strength++;
+            return strength;
+        }
+        
+        function resetErrors() {
+            document.querySelectorAll('.error-message').forEach(el => {
+                el.style.display = 'none';
+            });
+            document.getElementById('success-message').style.display = 'none';
+        }
+        
+        function showError(elementId, message) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.style.display = 'block';
+        }
+        
+        function validateForm(name, email, password, confirmPassword) {
+            let isValid = true;
+            
+            if (!name) {
+                showError('name-error', 'Nome é obrigatório');
+                isValid = false;
+            }
+            
+            if (!email) {
+                showError('email-error', 'Email é obrigatório');
+                isValid = false;
+            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                showError('email-error', 'Email inválido');
+                isValid = false;
+            }
+            
+            if (!password) {
+                showError('password-error', 'Senha é obrigatória');
+                isValid = false;
+            } else if (password.length < 6) {
+                showError('password-error', 'Mínimo 6 caracteres');
+                isValid = false;
+            }
+            
+            if (password !== confirmPassword) {
+                showError('confirmPassword-error', 'Senhas não coincidem');
+                isValid = false;
+            }
+            
+            return isValid;
+        }
+        
+        function setLoading(isLoading) {
+            const btn = document.getElementById('registerBtn');
+            const text = document.getElementById('registerText');
+            const spinner = document.getElementById('registerSpinner');
+            
+            btn.disabled = isLoading;
+            text.textContent = isLoading ? 'Registrando...' : 'Registrar';
+            spinner.style.display = isLoading ? 'inline-block' : 'none';
+        }
+        
+        async function registerUser(name, email, password) {
+            setLoading(true);
+            
+            try {
+                const response = await fetch('http://localhost:3000/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name, email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Erro ao registrar');
+                }
+                
+                // Sucesso
+                const successMsg = document.getElementById('success-message');
+                successMsg.textContent = 'Registro realizado com sucesso!';
+                successMsg.style.display = 'block';
+                
+                // Armazenar token e redirecionar
+                localStorage.setItem('authToken', data.data.token);
+                setTimeout(() => {
+                    window.location.href = 'bicho.html';
+                }, 1500);
+                
+            } catch (error) {
+                console.error('Register error:', error);
+                showError('email-error', error.message);
+            } finally {
+                setLoading(false);
+            }
+        }
+    </script>
+</body>
+</html>
