@@ -311,6 +311,230 @@
             padding-top: 20px;
         }
         
+        /* Estilos para a lista de usuários */
+        .users-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 15px;
+            background: rgba(10, 10, 20, 0.8);
+            border-radius: 8px;
+            padding: 10px;
+        }
+        
+        .user-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .user-item:last-child {
+            border-bottom: none;
+        }
+        
+        .user-item-info {
+            flex: 1;
+        }
+        
+        .user-item-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .select-user-btn {
+            background: var(--tenno-blue);
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        /* Notificação global de ganhadores */
+        .global-winner-notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(30, 30, 46, 0.95);
+            border: 2px solid var(--tenno-orange);
+            border-radius: 10px;
+            padding: 20px;
+            width: 90%;
+            max-width: 600px;
+            z-index: 1000;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            animation: slideDown 0.5s forwards;
+        }
+        
+        @keyframes slideDown {
+            from { top: -100px; opacity: 0; }
+            to { top: 20px; opacity: 1; }
+        }
+        
+        .global-winner-header {
+            color: var(--tenno-orange);
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        
+        .global-winner-content {
+            text-align: center;
+        }
+        
+        .global-winner-warframe {
+            font-size: 24px;
+            color: var(--tenno-blue);
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        
+        .global-winner-list {
+            margin-top: 15px;
+        }
+        
+        .global-winner-item {
+            margin: 8px 0;
+            padding: 8px;
+            background: rgba(10, 10, 20, 0.8);
+            border-radius: 5px;
+        }
+        
+        .close-winner-notification {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--error);
+            border: none;
+            color: white;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        /* Histórico de sorteios */
+        .history-section {
+            background: rgba(30, 30, 46, 0.8);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .history-section h3 {
+            color: var(--tenno-orange);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .history-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .history-item {
+            padding: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        
+        .history-warframe {
+            color: var(--tenno-blue);
+            font-weight: bold;
+        }
+        
+        .history-winner {
+            color: var(--tenno-orange);
+        }
+        
+        .history-date {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+           /* Modal de Regras */
+         .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: var(--tenno-dark);
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 2px solid var(--primary-color);
+            box-shadow: 0 0 20px rgba(106, 27, 154, 0.5);
+            position: relative;
+        }
+        
+        .modal-header {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .modal-header h2 {
+            color: var(--tenno-light);
+            font-size: 1.8rem;
+        }
+        
+        .modal-body {
+            margin-bottom: 20px;
+        }
+        
+        .rules-list {
+            list-style-type: none;
+        }
+        
+        .rules-list li {
+            margin-bottom: 15px;
+            padding-left: 25px;
+            position: relative;
+        }
+        
+        .rules-list li::before {
+            content: '\f00c';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            color: var(--tenno-darker);
+            position: absolute;
+            left: 0;
+        }
+        
+        .modal-footer {
+            text-align: center;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: var(--tenno-light);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
         @media (max-width: 768px) {
             .warframe-grid {
                 grid-template-columns: repeat(3, 1fr);
@@ -335,6 +559,32 @@
 </head>
 <body>
     <header>
+
+        <div id="rulesModal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal" id="closeModal">&times;</button>
+            <div class="modal-header">
+                <h2><i class="fas fa-scroll"></i> Regras Do Jogo e Sorteio</h2>
+            </div>
+            <div class="modal-body">
+                <p>Por favor, leia atentamente as regras do jogo antes de apostar:</p>
+                <ul class="rules-list">
+                    <li><strong>Como Funciona um Tickets:</strong> O ticket é a moeda de aposta e eles valem o equivalente a 5pl, A compra de Um ticket Não tem reembolso por este motivo atente-se a isso</li><li><strong>Warframes permitidos:</strong> Apenas Protoframes (aqueles com aparência humana, mas não é necesario ter a skin específica) </li>
+                    <li><strong>Como Comprar Saldo:</strong> A compra de saldo deve acontecer dentro do jogo por meio do Usuario Filosofo_Errado, O valor minimo de compra é 5pl, A compra de saldo nao tem reembolso por este motivo atente-se a isso</li>
+                    <li><strong>Acumulo de Premio:</strong> O premio ira ser acumulando de acordo com as apostas feitas, sem limite de acumulo.</li>
+                    <li><strong>Como receber o Premio:</strong> O premio sera dados ao vencedor e, um praso de até 3 dias, caso haja mais de um vencedor o premio sera repartido entre eles</li>
+                    <li><strong>Possiveis Trapassas:</strong> Em caso de tentativa de Trapassa o jogo ira desqualificar o jogador, a criaçao de novas contas para se inscrever no jogo nao sera permitida, cada usuario sera atrelado a uma conta em especifico caso tentem burlar isto resultara em desqualificação antes do sorteio, e em casos mais graves podendo resultar na expulsao do Clã</li>
+                </ul>
+                <p style="margin-top: 20px; color: var(--accent-color); font-weight: bold;">
+                    <i class="fas fa-exclamation-triangle"></i> Leia atentamente as regras do jogo antes de apostar.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button id="acceptRules" class="btn">Eu li e concordo com as regras</button>
+            </div>
+        </div>
+    </div>
+
         <div class="logo">
             <img src="img/OIP-removebg-preview.png" alt="Warframe">
             <h1>Warframe Bicho</h1>
@@ -396,6 +646,15 @@
             </button>
         </div>
         
+        <!-- Seção de histórico de sorteios -->
+        <div class="history-section">
+            <h3>Últimos Sorteios</h3>
+            <div class="history-list" id="historyList">
+                <!-- Histórico será carregado aqui -->
+                <p style="text-align: center;">Carregando histórico...</p>
+            </div>
+        </div>
+        
         <div class="admin-panel" id="adminPanel">
             <h3>Painel Administrativo</h3>
             
@@ -413,6 +672,14 @@
                 <span id="addBalanceText">Adicionar Platina</span>
                 <span id="addBalanceSpinner" class="loading" style="display: none;"></span>
             </button>
+            
+            <!-- Lista de usuários para admin -->
+            <div id="usersListContainer" style="margin-top: 20px; display: none;">
+                <h4 style="text-align: center; margin-bottom: 10px;">Usuários Cadastrados</h4>
+                <div class="users-list" id="usersList">
+                    <!-- Usuários serão carregados aqui -->
+                </div>
+            </div>
             
             <div class="admin-controls">
                 <div class="form-group">
@@ -449,534 +716,676 @@
         </div>
     </div>
 
-    <script>
-        // Dados dos Warframes (20 warframes)
-const warframes = [
-  { id: 1, nome: "Excalibur", imagem: "WF/Excalibur.jpg" },
-  { id: 2, nome: "Loki",     imagem: "WF/Loki.png" },
-  { id: 3, nome: "Mag",      imagem: "WF/Mag.jpg" },
-  { id: 4, nome: "Volt",     imagem: "WF/Volt.jpg" },
-  { id: 5, nome: "Rhino",    imagem: "WF/Rhino.jpg" },
-  { id: 6, nome: "Frost",    imagem: "WF/Frost.jpg" },
-  { id: 7, nome: "Ember",    imagem: "WF/Ember.jpg" },
-  { id: 8, nome: "Trinity",  imagem: "WF/Trinity.jpg" },
-  { id: 9, nome: "Ash",      imagem: "WF/Ash.jpg" },
-  { id: 10, nome: "Saryn",   imagem: "WF/Saryn.jpg" },
-  { id: 11, nome: "Nova",    imagem: "WF/Nova.jpg" },
-  { id: 12, nome: "Valkyr",  imagem: "WF/Valkyr.jpg" },
-  { id: 13, nome: "Oberon",  imagem: "WF/Oberon.jpg" },
-  { id: 14, nome: "Mesa",    imagem: "WF/Mesa.jpg" },
-  { id: 15, nome: "Equinox", imagem: "WF/Equinox.jpg" },
-  { id: 16, nome: "Wukong",  imagem: "WF/Wukong.jpg" },
-  { id: 17, nome: "Ivara",   imagem: "WF/Ivara.jpg" },
-  { id: 18, nome: "Nidus",   imagem: "WF/Nidus.jpg" },
-  { id: 19, nome: "Gara",    imagem: "WF/Gara.jpg" },
-  { id: 20, nome: "Revenant",imagem: "WF/Revenant.png" }
-];
-
-
-        // Variáveis do jogo
-        let currentUser = null;
-        let userBets = [];
-        let allBets = [];
-        let gameSettings = { basePrize: 100, multiplier: 5 };
-        let selectedWarframe = null;
-        let isAdmin = false;
-
-        // Elementos DOM
-        const warframeGrid = document.getElementById('warframeGrid');
-        const selectedWarframeSelect = document.getElementById('selectedWarframe');
-        const betAmountInput = document.getElementById('betAmount');
-        const placeBetBtn = document.getElementById('placeBet');
-        const userBalanceSpan = document.getElementById('userBalance');
-        const userTicketsSpan = document.getElementById('userTickets');
-        const totalPrizeSpan = document.getElementById('totalPrize');
-        const winChanceSpan = document.getElementById('winChance');
-        const adminPanel = document.getElementById('adminPanel');
-        const drawButton = document.getElementById('drawButton');
-        const clearBetsBtn = document.getElementById('clearBets');
-        const basePrizeInput = document.getElementById('basePrize');
-        const multiplierInput = document.getElementById('multiplier');
-        const resultSection = document.getElementById('resultSection');
-        const winnerWarframeSpan = document.getElementById('winnerWarframe');
-        const prizeAmountSpan = document.getElementById('prizeAmount');
-        const winnersListDiv = document.getElementById('winnersList');
-        const userAvatar = document.getElementById('userAvatar');
-        const userEmailSpan = document.getElementById('userEmail');
-        const logoutBtn = document.getElementById('logoutBtn');
-        const userToManageInput = document.getElementById('userToManage');
-        const balanceToAddInput = document.getElementById('balanceToAdd');
-        const addBalanceBtn = document.getElementById('addBalanceBtn');
-        const betError = document.getElementById('betError');
-        const warframeError = document.getElementById('warframeError');
-        const betText = document.getElementById('betText');
-        const betSpinner = document.getElementById('betSpinner');
-        const drawText = document.getElementById('drawText');
-        const drawSpinner = document.getElementById('drawSpinner');
-        const addBalanceText = document.getElementById('addBalanceText');
-        const addBalanceSpinner = document.getElementById('addBalanceSpinner');
-
-        // Funções
-        async function initGame() {
-            // Verifica autenticação
-            const authToken = localStorage.getItem('authToken');
-            const userEmail = localStorage.getItem('userEmail');
+<script>
+         // Mostrar modal de regras ao carregar a página
+               const modal = document.getElementById('rulesModal');
+            const closeModal = document.getElementById('closeModal');
+            const acceptRules = document.getElementById('acceptRules');
             
-            if (!authToken) {
-                window.location.href = 'login.html';
-                return;
+            modal.style.display = 'flex';
+            
+            // Fechar modal ao clicar no X
+            closeModal.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+            
+            // Fechar modal ao clicar no botão de aceitar
+            acceptRules.addEventListener('click', function() {
+                modal.style.display = 'none';
+                document.getElementById('agreeRules').checked = true;
+            });
+            
+            // Fechar modal ao clicar fora do conteúdo
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                    document.getElementById('agreeRules').checked = true;
+                }
+            });
+    // Dados dos Warframes (20 warframes)
+    const warframes = [
+        { id: 1, nome: "Excalibur", imagem: "WF/Excalibur.jpg" },
+        { id: 2, nome: "Loki",     imagem: "WF/Loki.png" },
+        { id: 3, nome: "Mag",      imagem: "WF/Mag.jpg" },
+        { id: 4, nome: "Volt",     imagem: "WF/Volt.jpg" },
+        { id: 5, nome: "Rhino",    imagem: "WF/Rhino.jpg" },
+        { id: 6, nome: "Frost",    imagem: "WF/Frost.jpg" },
+        { id: 7, nome: "Ember",    imagem: "WF/Ember.jpg" },
+        { id: 8, nome: "Trinity",  imagem: "WF/Trinity.jpg" },
+        { id: 9, nome: "Ash",      imagem: "WF/Ash.jpg" },
+        { id: 10, nome: "Saryn",   imagem: "WF/Saryn.jpg" },
+        { id: 11, nome: "Nova",    imagem: "WF/Nova.jpg" },
+        { id: 12, nome: "Valkyr",  imagem: "WF/Valkyr.jpg" },
+        { id: 13, nome: "Oberon",  imagem: "WF/Oberon.jpg" },
+        { id: 14, nome: "Mesa",    imagem: "WF/Mesa.jpg" },
+        { id: 15, nome: "Equinox", imagem: "WF/Equinox.jpg" },
+        { id: 16, nome: "Wukong",  imagem: "WF/Wukong.jpg" },
+        { id: 17, nome: "Ivara",   imagem: "WF/Ivara.jpg" },
+        { id: 18, nome: "Nidus",   imagem: "WF/Nidus.jpg" },
+        { id: 19, nome: "Gara",    imagem: "WF/Gara.jpg" },
+        { id: 20, nome: "Revenant",imagem: "WF/Revenant.png" }
+    ];
+
+    // Variáveis do jogo
+    let currentUser = null;
+    let userBets = [];
+    let allBets = [];
+    let gameSettings = { basePrize: 100, multiplier: 5 };
+    let selectedWarframe = null;
+    let isAdmin = false;
+    let allUsers = [];
+    let drawHistory = [];
+
+    // Elementos DOM
+    const warframeGrid = document.getElementById('warframeGrid');
+    const selectedWarframeSelect = document.getElementById('selectedWarframe');
+    const betAmountInput = document.getElementById('betAmount');
+    const placeBetBtn = document.getElementById('placeBet');
+    const userBalanceSpan = document.getElementById('userBalance');
+    const userTicketsSpan = document.getElementById('userTickets');
+    const totalPrizeSpan = document.getElementById('totalPrize');
+    const winChanceSpan = document.getElementById('winChance');
+    const adminPanel = document.getElementById('adminPanel');
+    const drawButton = document.getElementById('drawButton');
+    const clearBetsBtn = document.getElementById('clearBets');
+    const basePrizeInput = document.getElementById('basePrize');
+    const multiplierInput = document.getElementById('multiplier');
+    const resultSection = document.getElementById('resultSection');
+    const winnerWarframeSpan = document.getElementById('winnerWarframe');
+    const prizeAmountSpan = document.getElementById('prizeAmount');
+    const winnersListDiv = document.getElementById('winnersList');
+    const userAvatar = document.getElementById('userAvatar');
+    const userEmailSpan = document.getElementById('userEmail');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const userToManageInput = document.getElementById('userToManage');
+    const balanceToAddInput = document.getElementById('balanceToAdd');
+    const addBalanceBtn = document.getElementById('addBalanceBtn');
+    const betError = document.getElementById('betError');
+    const warframeError = document.getElementById('warframeError');
+    const betText = document.getElementById('betText');
+    const betSpinner = document.getElementById('betSpinner');
+    const drawText = document.getElementById('drawText');
+    const drawSpinner = document.getElementById('drawSpinner');
+    const addBalanceText = document.getElementById('addBalanceText');
+    const addBalanceSpinner = document.getElementById('addBalanceSpinner');
+    const usersListContainer = document.getElementById('usersListContainer');
+    const usersList = document.getElementById('usersList');
+    const historyList = document.getElementById('historyList');
+
+    // Funções
+    async function initGame() {
+        // Verifica autenticação
+        const authToken = localStorage.getItem('authToken');
+        const userEmail = localStorage.getItem('userEmail');
+        
+        if (!authToken) {
+            window.location.href = 'login.html';
+            return;
+        }
+        
+        try {
+            // Carrega dados do usuário
+            const userResponse = await fetch('/api/user/me', {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`
+                }
+            });
+            
+            if (!userResponse.ok) {
+                throw new Error('Falha ao carregar dados do usuário');
             }
             
-            try {
-                // Carrega dados do usuário
-                const userResponse = await fetch('/api/user/me', {
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`
-                    }
-                });
-                
-                if (!userResponse.ok) {
-                    throw new Error('Falha ao carregar dados do usuário');
-                }
-                
-                const userData = await userResponse.json();
-                currentUser = userData.data;
-                
-                // Configura usuário na interface
-                userEmailSpan.textContent = currentUser.email;
-                userAvatar.textContent = currentUser.name.charAt(0).toUpperCase();
-                userBalanceSpan.textContent = `${currentUser.balance} Platina`;
-                
-                // Verifica se é admin
-                isAdmin = currentUser.isAdmin;
-                adminPanel.style.display = isAdmin ? 'block' : 'none';
-                
-                // Carrega warframes
-                loadWarframes();
-                
-                // Carrega configurações do jogo
-                await loadGameSettings();
-                
-                // Carrega apostas
-                await loadBets();
-                
-                // Atualiza interface
-                updateUI();
-                
-            } catch (error) {
-                console.error('Erro ao inicializar jogo:', error);
-                alert('Erro ao carregar dados. Por favor, faça login novamente.');
-                logout();
+            const userData = await userResponse.json();
+            currentUser = userData.data;
+            
+            // Configura usuário na interface
+            userEmailSpan.textContent = currentUser.email;
+            userAvatar.textContent = currentUser.name.charAt(0).toUpperCase();
+            userBalanceSpan.textContent = `${currentUser.balance} Platina`;
+            
+            // Verifica se é admin
+            isAdmin = currentUser.isAdmin;
+            adminPanel.style.display = isAdmin ? 'block' : 'none';
+            
+            // Carrega warframes
+            loadWarframes();
+            
+            // Carrega configurações do jogo
+            await loadGameSettings();
+            
+            // Carrega apostas
+            await loadBets();
+            
+            // Carrega histórico de sorteios
+            await loadDrawHistory();
+            
+            // Se for admin, carrega lista de usuários
+            if (isAdmin) {
+                await loadAllUsers();
+                usersListContainer.style.display = 'block';
             }
+            
+            // Atualiza interface
+            updateUI();
+            
+        } catch (error) {
+            console.error('Erro ao inicializar jogo:', error);
+            alert('Erro ao carregar dados. Por favor, faça login novamente.');
+            logout();
         }
+    }
 
-        async function loadGameSettings() {
-            try {
-                const response = await fetch('/api/game/settings');
-                if (response.ok) {
-                    const data = await response.json();
-                    gameSettings = data.data || { basePrize: 100, multiplier: 5 };
-                    basePrizeInput.value = gameSettings.basePrize;
-                    multiplierInput.value = gameSettings.multiplier;
-                }
-            } catch (error) {
-                console.error('Erro ao carregar configurações:', error);
+    async function loadDrawHistory() {
+        try {
+            const response = await fetch('/api/game/history');
+            if (response.ok) {
+                const data = await response.json();
+                drawHistory = data.data || [];
+                renderDrawHistory();
             }
+        } catch (error) {
+            console.error('Erro ao carregar histórico:', error);
         }
+    }
 
-        async function loadBets() {
-            try {
-                // Carrega apostas do usuário
-                const userBetsResponse = await fetch('/api/bets', {
+    function renderDrawHistory() {
+        historyList.innerHTML = '';
+        
+        if (drawHistory.length === 0) {
+            historyList.innerHTML = '<p style="text-align: center;">Nenhum sorteio realizado ainda</p>';
+            return;
+        }
+        
+        // Mostra apenas os últimos 10 sorteios
+        const recentHistory = drawHistory.slice(0, 10);
+        
+        recentHistory.forEach(draw => {
+            const warframe = warframes.find(w => w.id === draw.winningNumber);
+            const item = document.createElement('div');
+            item.className = 'history-item';
+            
+            const date = new Date(draw.date).toLocaleString('pt-BR');
+            
+            item.innerHTML = `
+                <div>
+                    <span class="history-warframe">${warframe ? warframe.nome : draw.winningNumber}</span>
+                    <div class="history-date">${date}</div>
+                </div>
+                <div class="history-winner">${draw.winnerName || 'Sem ganhador'}</div>
+            `;
+            
+            historyList.appendChild(item);
+        });
+    }
+
+    async function loadAllUsers() {
+        try {
+            const response = await fetch('/api/users', {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                allUsers = data.data || [];
+                renderUsersList();
+            }
+        } catch (error) {
+            console.error('Erro ao carregar usuários:', error);
+        }
+    }
+
+    function renderUsersList() {
+        usersList.innerHTML = '';
+        
+        if (allUsers.length === 0) {
+            usersList.innerHTML = '<p style="text-align: center;">Nenhum usuário cadastrado</p>';
+            return;
+        }
+        
+        allUsers.forEach(user => {
+            const userItem = document.createElement('div');
+            userItem.className = 'user-item';
+            userItem.innerHTML = `
+                <div class="user-item-info">
+                    <strong>${user.name}</strong> (${user.email})
+                    <div>Saldo: ${user.balance} Platina</div>
+                </div>
+                <div class="user-item-actions">
+                    <button class="select-user-btn" data-email="${user.email}">Selecionar</button>
+                </div>
+            `;
+            usersList.appendChild(userItem);
+        });
+        
+        // Adiciona eventos aos botões de seleção
+        document.querySelectorAll('.select-user-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const userEmail = btn.getAttribute('data-email');
+                userToManageInput.value = userEmail;
+                userToManageInput.scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+    }
+
+    async function loadGameSettings() {
+        try {
+            const response = await fetch('/api/game/settings');
+            if (response.ok) {
+                const data = await response.json();
+                gameSettings = data.data || { basePrize: 100, multiplier: 5 };
+                basePrizeInput.value = gameSettings.basePrize;
+                multiplierInput.value = gameSettings.multiplier;
+            }
+        } catch (error) {
+            console.error('Erro ao carregar configurações:', error);
+        }
+    }
+
+    async function loadBets() {
+        try {
+            // Carrega apostas do usuário
+            const userBetsResponse = await fetch('/api/bets', {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                }
+            });
+            
+            if (userBetsResponse.ok) {
+                const data = await userBetsResponse.json();
+                userBets = data.data || [];
+            }
+            
+            // Se for admin, carrega todas as apostas
+            if (isAdmin) {
+                const allBetsResponse = await fetch('/api/bets/all', {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('authToken')}`
                     }
                 });
                 
-                if (userBetsResponse.ok) {
-                    const data = await userBetsResponse.json();
-                    userBets = data.data || [];
+                if (allBetsResponse.ok) {
+                    const data = await allBetsResponse.json();
+                    allBets = data.data || [];
                 }
-                
-                // Se for admin, carrega todas as apostas
-                if (isAdmin) {
-                    const allBetsResponse = await fetch('/api/bets/all', {
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-                        }
-                    });
-                    
-                    if (allBetsResponse.ok) {
-                        const data = await allBetsResponse.json();
-                        allBets = data.data || [];
-                    }
-                }
-                
-            } catch (error) {
-                console.error('Erro ao carregar apostas:', error);
             }
-        }
-
-        function loadWarframes() {
-            warframeGrid.innerHTML = '';
-            selectedWarframeSelect.innerHTML = '<option value="">Selecione um Warframe</option>';
             
-            warframes.forEach(warframe => {
-                // Card na grade
-                const card = document.createElement('div');
-                card.className = 'warframe-card';
-                card.dataset.id = warframe.id;
-                card.innerHTML = `
-                    <img src="${warframe.imagem}" alt="${warframe.nome}">
-                    <h3>${warframe.nome}</h3>
-                `;
-                card.addEventListener('click', () => selectWarframe(warframe.id));
-                warframeGrid.appendChild(card);
-                
-                // Opção no select
-                const option = document.createElement('option');
-                option.value = warframe.id;
-                option.textContent = `${warframe.id} - ${warframe.nome}`;
-                selectedWarframeSelect.appendChild(option);
+        } catch (error) {
+            console.error('Erro ao carregar apostas:', error);
+        }
+    }
+
+    function loadWarframes() {
+        warframeGrid.innerHTML = '';
+        selectedWarframeSelect.innerHTML = '<option value="">Selecione um Warframe</option>';
+        
+        warframes.forEach(warframe => {
+            // Card na grade
+            const card = document.createElement('div');
+            card.className = 'warframe-card';
+            card.dataset.id = warframe.id;
+            card.innerHTML = `
+                <img src="${warframe.imagem}" alt="${warframe.nome}">
+                <h3>${warframe.nome}</h3>
+            `;
+            card.addEventListener('click', () => selectWarframe(warframe.id));
+            warframeGrid.appendChild(card);
+            
+            // Opção no select
+            const option = document.createElement('option');
+            option.value = warframe.id;
+            option.textContent = `${warframe.id} - ${warframe.nome}`;
+            selectedWarframeSelect.appendChild(option);
+        });
+    }
+
+    function selectWarframe(id) {
+        selectedWarframe = id;
+        
+        // Atualiza seleção visual
+        document.querySelectorAll('.warframe-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        
+        const selectedCard = document.querySelector(`.warframe-card[data-id="${id}"]`);
+        if (selectedCard) {
+            selectedCard.classList.add('selected');
+        }
+        
+        // Atualiza select
+        selectedWarframeSelect.value = id;
+        warframeError.style.display = 'none';
+    }
+
+    async function fazerAposta() {
+        const tickets = parseInt(betAmountInput.value);
+        const warframeId = selectedWarframe;
+        
+        // Validações
+        betError.style.display = 'none';
+        warframeError.style.display = 'none';
+        
+        if (!warframeId) {
+            warframeError.textContent = 'Selecione um Warframe para apostar';
+            warframeError.style.display = 'block';
+            return;
+        }
+        
+        if (isNaN(tickets)) {
+            betError.textContent = 'Digite um número válido de tickets';
+            betError.style.display = 'block';
+            return;
+        }
+        
+        if (tickets < 1) {
+            betError.textContent = 'O valor mínimo é 1 ticket';
+            betError.style.display = 'block';
+            return;
+        }
+        
+        const valorTotal = tickets * 5; // Cada ticket custa 5 platina
+        
+        if (valorTotal > currentUser.balance) {
+            betError.textContent = 'Saldo insuficiente para comprar esta quantidade de tickets';
+            betError.style.display = 'block';
+            return;
+        }
+        
+        try {
+            // Mostra loading
+            betText.textContent = 'Processando...';
+            betSpinner.style.display = 'inline-block';
+            placeBetBtn.disabled = true;
+            
+            const warframe = warframes.find(w => w.id === warframeId);
+            
+            // Envia a aposta para o servidor
+            const response = await fetch('/api/bets', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                },
+                body: JSON.stringify({
+                    warframeId,
+                    warframeName: warframe.nome,
+                    amount: valorTotal,
+                    tickets: tickets
+                })
             });
-        }
-
-        function selectWarframe(id) {
-            selectedWarframe = id;
             
-            // Atualiza seleção visual
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Erro ao fazer aposta');
+            }
+            
+            const data = await response.json();
+            
+            // Atualiza dados locais
+            currentUser.balance -= valorTotal;
+            userBets.push(data.data);
+            
+            // Atualiza interface
+            updateUI();
+            
+            alert(`Tickets comprados com sucesso!\n${tickets} tickets no ${warframe.nome}`);
+            
+            // Limpa seleção
+            selectedWarframe = null;
+            selectedWarframeSelect.value = '';
             document.querySelectorAll('.warframe-card').forEach(card => {
                 card.classList.remove('selected');
             });
             
-            const selectedCard = document.querySelector(`.warframe-card[data-id="${id}"]`);
-            if (selectedCard) {
-                selectedCard.classList.add('selected');
-            }
-            
-            // Atualiza select
-            selectedWarframeSelect.value = id;
-            warframeError.style.display = 'none';
+        } catch (error) {
+            console.error('Erro ao fazer aposta:', error);
+            alert(error.message || 'Erro ao comprar tickets');
+        } finally {
+            betText.textContent = 'Comprar Tickets';
+            betSpinner.style.display = 'none';
+            placeBetBtn.disabled = false;
         }
+    }
 
-        async function fazerAposta() {
-            const tickets = parseInt(betAmountInput.value);
-            const warframeId = selectedWarframe;
+    async function sortearGanhador() {
+        try {
+            // Mostra loading
+            drawText.textContent = 'Sorteando...';
+            drawSpinner.style.display = 'inline-block';
+            drawButton.disabled = true;
             
-            // Validações
-            betError.style.display = 'none';
-            warframeError.style.display = 'none';
+            const response = await fetch('/api/game/draw', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                }
+            });
             
-            if (!warframeId) {
-                warframeError.textContent = 'Selecione um Warframe para apostar';
-                warframeError.style.display = 'block';
-                return;
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Erro ao sortear ganhador');
             }
             
-            if (isNaN(tickets)) {
-                betError.textContent = 'Digite um número válido de tickets';
-                betError.style.display = 'block';
-                return;
+            const data = await response.json();
+            const warframeSorteado = warframes.find(w => w.id === data.data.winningNumber);
+            
+            // Mostra notificação global para todos os usuários
+            showGlobalWinnerNotification(data.data, warframeSorteado);
+            
+            // Mostra resultados na seção de resultados
+            winnerWarframeSpan.textContent = warframeSorteado ? warframeSorteado.nome : 'Nenhum';
+            prizeAmountSpan.textContent = `${data.data.prizePool} Platina`;
+            
+            // Lista ganhadores
+            winnersListDiv.innerHTML = '';
+            if (data.data.winnersCount > 0) {
+                winnersListDiv.innerHTML = '<h4>Ganhadores:</h4>';
+                
+                // Busca detalhes dos ganhadores
+                for (const winner of data.data.winners) {
+                    const userResponse = await fetch(`/api/user/${winner.userId}`);
+                    if (userResponse.ok) {
+                        const userData = await userResponse.json();
+                        const div = document.createElement('div');
+                        div.className = 'winner-item';
+                        div.innerHTML = `
+                            <p><strong>${userData.data.name}</strong> - ${winner.amount} Platina em tickets</p>
+                        `;
+                        winnersListDiv.appendChild(div);
+                    }
+                }
+            } else {
+                winnersListDiv.innerHTML = '<p>Nenhum ganhador desta vez</p>';
             }
             
-            if (tickets < 1) {
-                betError.textContent = 'O valor mínimo é 1 ticket';
-                betError.style.display = 'block';
-                return;
+            // Mostra seção de resultados
+            resultSection.style.display = 'block';
+            resultSection.scrollIntoView({ behavior: 'smooth' });
+            
+            // Recarrega dados
+            await Promise.all([loadGameSettings(), loadBets(), loadDrawHistory()]);
+            if (isAdmin) await loadAllUsers();
+            updateUI();
+            
+        } catch (error) {
+            console.error('Erro ao sortear ganhador:', error);
+            alert(error.message || 'Erro ao realizar sorteio');
+        } finally {
+            drawText.textContent = 'Sortear Ganhador';
+            drawSpinner.style.display = 'none';
+            drawButton.disabled = false;
+        }
+    }
+
+    function showGlobalWinnerNotification(resultData, warframeSorteado) {
+        // Cria a notificação
+        const notification = document.createElement('div');
+        notification.className = 'global-winner-notification';
+        
+        // Conteúdo da notificação
+        notification.innerHTML = `
+            <button class="close-winner-notification" onclick="this.parentElement.remove()">X</button>
+            <div class="global-winner-header">🎉 Sorteio Realizado! 🎉</div>
+            <div class="global-winner-content">
+                <div>Warframe Sorteado:</div>
+                <div class="global-winner-warframe">${warframeSorteado ? warframeSorteado.nome : 'Nenhum'}</div>
+                <div>Prêmio Total: ${resultData.prizePool} Platina</div>
+                
+                <div class="global-winner-list">
+                    ${resultData.winnersCount > 0 ? 
+                        `<div>Ganhadores:</div>` : 
+                        `<div>Nenhum ganhador desta vez</div>`}
+                    
+                    ${resultData.winners.map(winner => `
+                        <div class="global-winner-item">
+                            ${winner.userName || 'Usuário'} - ${winner.amount} Platina em tickets
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+        
+        // Adiciona ao corpo do documento
+        document.body.appendChild(notification);
+        
+        // Remove automaticamente após 15 segundos
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
             }
-            
-            const valorTotal = tickets * 5; // Cada ticket custa 5 platina
-            
-            if (valorTotal > currentUser.balance) {
-                betError.textContent = 'Saldo insuficiente para comprar esta quantidade de tickets';
-                betError.style.display = 'block';
-                return;
-            }
-            
+        }, 15000);
+    }
+
+    async function limparApostas() {
+        if (confirm('Tem certeza que deseja limpar TODAS as apostas? Esta ação não pode ser desfeita.')) {
             try {
-                // Mostra loading
-                betText.textContent = 'Processando...';
-                betSpinner.style.display = 'inline-block';
-                placeBetBtn.disabled = true;
-                
-                const warframe = warframes.find(w => w.id === warframeId);
-                
-                // Envia a aposta para o servidor
-                const response = await fetch('/api/bets', {
-                    method: 'POST',
+                const response = await fetch('/api/bets/all', {
+                    method: 'DELETE',
                     headers: {
-                        'Content-Type': 'application/json',
                         'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-                    },
-                    body: JSON.stringify({
-                        warframeId,
-                        warframeName: warframe.nome,
-                        amount: valorTotal
-                    })
+                    }
                 });
                 
                 if (!response.ok) {
                     const errorData = await response.json();
-                    throw new Error(errorData.error || 'Erro ao fazer aposta');
+                    throw new Error(errorData.error || 'Erro ao limpar apostas');
                 }
                 
-                const data = await response.json();
-                
-                // Atualiza dados locais
-                currentUser.balance -= valorTotal;
-                userBets.push(data.data);
-                
-                // Atualiza interface
+                // Recarrega apostas
+                await loadBets();
                 updateUI();
-                
-                alert(`Tickets comprados com sucesso!\n${tickets} tickets no ${warframe.nome}`);
-                
-                // Limpa seleção
-                selectedWarframe = null;
-                selectedWarframeSelect.value = '';
-                document.querySelectorAll('.warframe-card').forEach(card => {
-                    card.classList.remove('selected');
-                });
+                alert('Todas as apostas foram removidas com sucesso!');
                 
             } catch (error) {
-                console.error('Erro ao fazer aposta:', error);
-                alert(error.message || 'Erro ao comprar tickets');
-            } finally {
-                betText.textContent = 'Comprar Tickets';
-                betSpinner.style.display = 'none';
-                placeBetBtn.disabled = false;
+                console.error('Erro ao limpar apostas:', error);
+                alert('Erro ao limpar apostas');
             }
         }
+    }
 
-        async function sortearGanhador() {
-            try {
-                // Mostra loading
-                drawText.textContent = 'Sorteando...';
-                drawSpinner.style.display = 'inline-block';
-                drawButton.disabled = true;
-                
-                const response = await fetch('/api/game/draw', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-                    }
-                });
-                
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Erro ao sortear ganhador');
-                }
-                
-                const data = await response.json();
-                
-                // Mostra resultados
-                const warframeSorteado = warframes.find(w => w.id === data.data.winningNumber);
-                winnerWarframeSpan.textContent = warframeSorteado ? warframeSorteado.nome : 'Nenhum';
-                prizeAmountSpan.textContent = `${data.data.prizePool} Platina`;
-                
-                // Lista ganhadores
-                winnersListDiv.innerHTML = '';
-                if (data.data.winnersCount > 0) {
-                    winnersListDiv.innerHTML = '<h4>Ganhadores:</h4>';
-                    
-                    // Busca detalhes dos ganhadores
-                    for (const winner of data.data.winners) {
-                        const userResponse = await fetch(`/api/user/${winner.userId}`);
-                        if (userResponse.ok) {
-                            const userData = await userResponse.json();
-                            const div = document.createElement('div');
-                            div.className = 'winner-item';
-                            div.innerHTML = `
-                                <p><strong>${userData.data.name}</strong> - ${winner.amount} Platina em tickets</p>
-                            `;
-                            winnersListDiv.appendChild(div);
-                        }
-                    }
-                } else {
-                    winnersListDiv.innerHTML = '<p>Nenhum ganhador desta vez</p>';
-                }
-                
-                // Mostra seção de resultados
-                resultSection.style.display = 'block';
-                resultSection.scrollIntoView({ behavior: 'smooth' });
-                
-                // Recarrega dados
-                await Promise.all([loadGameSettings(), loadBets()]);
-                updateUI();
-                
-            } catch (error) {
-                console.error('Erro ao sortear ganhador:', error);
-                alert(error.message || 'Erro ao realizar sorteio');
-            } finally {
-                drawText.textContent = 'Sortear Ganhador';
-                drawSpinner.style.display = 'none';
-                drawButton.disabled = false;
-            }
+    async function adicionarSaldo() {
+        const userEmail = userToManageInput.value.trim();
+        const amount = parseInt(balanceToAddInput.value);
+        
+        if (!userEmail) {
+            alert('Digite o email do usuário');
+            return;
         }
-
-        async function limparApostas() {
-            if (confirm('Tem certeza que deseja limpar TODAS as apostas? Esta ação não pode ser desfeita.')) {
-                try {
-                    const response = await fetch('/api/bets/all', {
-                        method: 'DELETE',
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-                        }
-                    });
-                    
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || 'Erro ao limpar apostas');
-                    }
-                    
-                    // Recarrega apostas
-                    await loadBets();
-                    updateUI();
-                    alert('Todas as apostas foram removidas com sucesso!');
-                    
-                } catch (error) {
-                    console.error('Erro ao limpar apostas:', error);
-                    alert(error.message || 'Erro ao limpar apostas');
-                }
-            }
+        
+        if (isNaN(amount) || amount <= 0) {
+            alert('Digite um valor válido para adicionar');
+            return;
         }
-
-        async function atualizarConfiguracoes() {
-            try {
-                const basePrize = parseInt(basePrizeInput.value) || 100;
-                const multiplier = parseInt(multiplierInput.value) || 5;
-                
-                const response = await fetch('/api/game/settings', {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-                    },
-                    body: JSON.stringify({ basePrize, multiplier })
-                });
-                
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Erro ao atualizar configurações');
-                }
-                
-                const data = await response.json();
-                gameSettings = data.data;
-                alert('Configurações atualizadas com sucesso!');
-                
-            } catch (error) {
-                console.error('Erro ao atualizar configurações:', error);
-                alert(error.message || 'Erro ao atualizar configurações');
+        
+        try {
+            // Mostra loading
+            addBalanceText.textContent = 'Processando...';
+            addBalanceSpinner.style.display = 'inline-block';
+            addBalanceBtn.disabled = true;
+            
+            const response = await fetch(`/api/users/${encodeURIComponent(userEmail)}/add-balance`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                },
+                body: JSON.stringify({ amount })
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Erro ao adicionar saldo');
             }
+            
+            const data = await response.json();
+            alert(`Saldo adicionado com sucesso para ${userEmail}`);
+            
+            // Atualiza lista de usuários
+            await loadAllUsers();
+            
+            // Limpa campos
+            userToManageInput.value = '';
+            balanceToAddInput.value = '100';
+            
+        } catch (error) {
+            console.error('Erro ao adicionar saldo:', error);
+            alert(error.message || 'Erro ao adicionar saldo');
+        } finally {
+            addBalanceText.textContent = 'Adicionar Platina';
+            addBalanceSpinner.style.display = 'none';
+            addBalanceBtn.disabled = false;
         }
+    }
 
-        async function adicionarPlatina() {
-            const userEmail = userToManageInput.value.trim();
-            const amount = parseInt(balanceToAddInput.value) || 0;
-            
-            if (!userEmail) {
-                alert('Digite o email do usuário');
-                return;
-            }
-            
-            if (amount <= 0) {
-                alert('Digite um valor válido para adicionar');
-                return;
-            }
-            
-            try {
-                // Mostra loading
-                addBalanceText.textContent = 'Processando...';
-                addBalanceSpinner.style.display = 'inline-block';
-                addBalanceBtn.disabled = true;
-                
-                const response = await fetch(`/api/users/${userEmail}/add-balance`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-                    },
-                    body: JSON.stringify({ amount })
-                });
-                
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Erro ao adicionar platina');
-                }
-                
-                const data = await response.json();
-                alert(`Saldo atualizado com sucesso!\nNovo saldo: ${data.data.balance} Platina`);
-                
-                // Se for o usuário atual, atualiza os dados
-                if (userEmail === currentUser.email) {
-                    currentUser.balance = data.data.balance;
-                    updateUI();
-                }
-                
-            } catch (error) {
-                console.error('Erro ao adicionar platina:', error);
-                alert(error.message || 'Erro ao adicionar platina');
-            } finally {
-                addBalanceText.textContent = 'Adicionar Platina';
-                addBalanceSpinner.style.display = 'none';
-                addBalanceBtn.disabled = false;
-            }
+    function updateUI() {
+        // Atualiza saldo
+        userBalanceSpan.textContent = `${currentUser.balance} Platina`;
+        
+        // Atualiza tickets do usuário
+        const userTickets = userBets.reduce((sum, bet) => sum + (bet.tickets || bet.amount / 5), 0);
+        userTicketsSpan.textContent = `${userTickets} Tickets`;
+        
+        // Atualiza prêmio acumulado e chance de ganhar
+        if (isAdmin) {
+            const totalPrize = allBets.reduce((sum, bet) => sum + bet.amount, 0) * gameSettings.multiplier + gameSettings.basePrize;
+            totalPrizeSpan.textContent = `${totalPrize} Platina`;
+        } else {
+            const totalPrize = allBets.reduce((sum, bet) => sum + bet.amount, 0) * gameSettings.multiplier + gameSettings.basePrize;
+            totalPrizeSpan.textContent = `${totalPrize} Platina`;
         }
-
-        function updateUI() {
-            if (!currentUser) return;
-            
-            // Atualiza saldo e tickets
-            userBalanceSpan.textContent = `${currentUser.balance} Platina`;
-            
-            // Calcula tickets do usuário (cada ticket custa 5 platina)
-            const totalTickets = userBets.reduce((total, bet) => total + (bet.amount / 5), 0);
-            userTicketsSpan.textContent = `${totalTickets} Tickets`;
-            
-            // Calcula prêmio acumulado
-            const totalApostado = allBets.reduce((total, bet) => total + bet.amount, 0);
-            const premioTotal = gameSettings.basePrize + (totalApostado * gameSettings.multiplier);
-            totalPrizeSpan.textContent = `${premioTotal} Platina`;
-            
-            // Calcula chance de ganhar (baseado na proporção de tickets do usuário)
-            const totalTicketsAllUsers = allBets.reduce((total, bet) => total + (bet.amount / 5), 0);
-            const chance = totalTicketsAllUsers > 0 ? (totalTickets / totalTicketsAllUsers) * 100 : 0;
-            winChanceSpan.textContent = `${chance.toFixed(1)}%`;
-            
-            // Atualiza valores admin
-            if (isAdmin) {
-                basePrizeInput.value = gameSettings.basePrize;
-                multiplierInput.value = gameSettings.multiplier;
-            }
+        
+        // Calcula chance de ganhar (simplificado)
+        if (userBets.length > 0) {
+            const userTotalBets = userBets.reduce((sum, bet) => sum + bet.amount, 0);
+            const allTotalBets = allBets.reduce((sum, bet) => sum + bet.amount, 0);
+            const chance = (userTotalBets / allTotalBets * 100).toFixed(2);
+            winChanceSpan.textContent = `${chance}%`;
+        } else {
+            winChanceSpan.textContent = '0%';
         }
+    }
 
-        function logout() {
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('userEmail');
-            window.location.href = 'login.html';
-        }
+    function logout() {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userEmail');
+        window.location.href = 'login.html';
+    }
 
-        // Event Listeners
-        selectedWarframeSelect.addEventListener('change', (e) => {
-            selectWarframe(parseInt(e.target.value));
-        });
+    // Event Listeners
+    selectedWarframeSelect.addEventListener('change', (e) => {
+        selectedWarframe = e.target.value ? parseInt(e.target.value) : null;
+        warframeError.style.display = 'none';
+    });
 
-        placeBetBtn.addEventListener('click', fazerAposta);
+    placeBetBtn.addEventListener('click', fazerAposta);
+    drawButton.addEventListener('click', sortearGanhador);
+    clearBetsBtn.addEventListener('click', limparApostas);
+    logoutBtn.addEventListener('click', logout);
+    addBalanceBtn.addEventListener('click', adicionarSaldo);
 
-        drawButton.addEventListener('click', sortearGanhador);
-
-        clearBetsBtn.addEventListener('click', limparApostas);
-
-        basePrizeInput.addEventListener('change', atualizarConfiguracoes);
-
-        multiplierInput.addEventListener('change', atualizarConfiguracoes);
-
-        addBalanceBtn.addEventListener('click', adicionarPlatina);
-
-        logoutBtn.addEventListener('click', logout);
-
-        // Inicializa o jogo
-        document.addEventListener('DOMContentLoaded', initGame);
-    </script>
+    // Inicializa o jogo quando a página carrega
+    document.addEventListener('DOMContentLoaded', initGame);
+</script>
 </body>
 </html>

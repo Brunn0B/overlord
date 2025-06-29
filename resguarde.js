@@ -47,7 +47,6 @@ const BetSchema = new mongoose.Schema({
     warframeId: { type: Number, required: true },
     warframeName: { type: String, required: true },
     amount: { type: Number, required: true },
-    tickets: { type: Number, required: true },
     date: { type: Date, default: Date.now }
 });
 
@@ -56,17 +55,6 @@ const GameSettingsSchema = new mongoose.Schema({
     basePrize: { type: Number, default: 100 },
     multiplier: { type: Number, default: 5 },
     lastDraw: { type: Date }
-});
-
-// Modelo de Histórico de Sorteios
-const DrawHistorySchema = new mongoose.Schema({
-    winningNumber: { type: Number, required: true },
-    warframeName: { type: String, required: true },
-    prizePool: { type: Number, required: true },
-    winnerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    winnerName: { type: String },
-    winnerAmount: { type: Number },
-    date: { type: Date, default: Date.now }
 });
 
 // Modelo de Inscrição para Torneio
@@ -83,12 +71,53 @@ const RegistrationSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 });
 
+// Modelo para armazenar os resultados das batalhas
+const BattleSchema = new mongoose.Schema({
+    event: String,
+    battles: [{
+        fighter1: { type: mongoose.Schema.Types.ObjectId, ref: 'Registration' },
+        fighter2: { type: mongoose.Schema.Types.ObjectId, ref: 'Registration' },
+        winner: { type: mongoose.Schema.Types.ObjectId, ref: 'Registration' },
+        date: { type: Date, default: Date.now }
+    }],
+    created: { type: Date, default: Date.now }
+});
+
+// Modelo de Build
+const BuildSchema = new mongoose.Schema({
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    name: { type: String, required: true },
+    type: { 
+        type: String, 
+        required: true, 
+        enum: ['warframe', 'primary', 'secondary', 'melee', 'companion'] 
+    },
+    item: { 
+        name: { type: String, required: true },
+        image: { type: String },
+        stats: { type: Object }
+    },
+    mods: [{
+        name: { type: String, required: true },
+        stats: { type: Object, required: true },
+        isRiven: { type: Boolean, default: false },
+        rivenName: { type: String },
+        rivenStats: { type: String },
+        rivenRank: { type: Number }
+    }],
+    description: { type: String },
+    isPublic: { type: Boolean, default: true },
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now }
+});
+
 // Criando os modelos
 const User = mongoose.model('User', UserSchema);
 const Bet = mongoose.model('Bet', BetSchema);
 const GameSettings = mongoose.model('GameSettings', GameSettingsSchema);
-const DrawHistory = mongoose.model('DrawHistory', DrawHistorySchema);
 const Registration = mongoose.model('Registration', RegistrationSchema);
+const Battle = mongoose.model('Battle', BattleSchema);
+const Build = mongoose.model('Build', BuildSchema);
 
 /**************************************/
 /* MIDDLEWARES */
@@ -202,6 +231,7 @@ app.post('/api/auth/login', async (req, res) => {
     try {
         const { email, password } = req.body;
 
+        // Validação básica
         if (!email || !password) {
             return res.status(400).json({ 
                 success: false, 
@@ -209,6 +239,7 @@ app.post('/api/auth/login', async (req, res) => {
             });
         }
 
+        // Busca usuário (email em minúsculas)
         const user = await User.findOne({ email: email.toLowerCase() });
         if (!user) {
             return res.status(401).json({ 
@@ -217,6 +248,7 @@ app.post('/api/auth/login', async (req, res) => {
             });
         }
 
+        // Verifica senha
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return res.status(401).json({ 
@@ -225,10 +257,12 @@ app.post('/api/auth/login', async (req, res) => {
             });
         }
 
+        // Gera token JWT
         const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { 
             expiresIn: '24h' 
         });
 
+        // Resposta de sucesso
         res.json({
             success: true,
             data: {
@@ -267,9 +301,9 @@ app.get('/api/user/me', authenticate, async (req, res) => {
 // Fazer uma aposta
 app.post('/api/bets', authenticate, async (req, res) => {
     try {
-        const { warframeId, warframeName, amount, tickets } = req.body;
+        const { warframeId, warframeName, amount } = req.body;
 
-        if (!warframeId || !warframeName || !amount || !tickets) {
+        if (!warframeId || !warframeName || !amount) {
             return res.status(400).json({ 
                 success: false, 
                 error: 'Dados da aposta incompletos' 
@@ -294,8 +328,7 @@ app.post('/api/bets', authenticate, async (req, res) => {
             userId: req.user._id,
             warframeId,
             warframeName,
-            amount,
-            tickets
+            amount
         });
 
         req.user.balance -= amount;
@@ -423,6 +456,231 @@ app.get('/api/tournament/registrations', async (req, res) => {
     }
 });
 
+// Registrar resultado de batalha (apenas admin)
+app.post('/api/tournament/battles', authenticate, checkAdmin, async (req, res) => {
+    try {
+        const newBattle = new Battle({
+            event: req.body.event,
+            battles: req.body.battles
+        });
+
+        await newBattle.save();
+        
+        res.status(201).json({
+            success: true,
+            message: 'Resultados das batalhas salvos com sucesso!'
+        });
+        
+    } catch (error) {
+        console.error('Erro ao salvar batalhas:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Erro ao processar resultados',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
+
+// Listar batalhas
+app.get('/api/tournament/battles', async (req, res) => {
+    try {
+        const battles = await Battle.find()
+            .populate('battles.fighter1 battles.fighter2 battles.winner')
+            .sort({ created: -1 });
+            
+        res.json({ 
+            success: true,
+            data: battles 
+        });
+    } catch (error) {
+        res.status(500).json({ 
+            success: false,
+            error: error.message 
+        });
+    }
+});
+
+/**************************************/
+/* ROTAS PARA BUILD SHARING */
+/**************************************/
+
+// Criar nova build
+app.post('/api/builds', authenticate, async (req, res) => {
+    try {
+        const { name, type, item, description, isPublic, mods } = req.body;
+        
+        if (!name || !type || !item?.name) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Campos obrigatórios faltando: name, type, item.name' 
+            });
+        }
+        
+        const newBuild = new Build({
+            userId: req.user._id,
+            name,
+            type,
+            item: {
+                name: item.name,
+                image: item.image || null,
+                stats: item.stats || {}
+            },
+            mods: mods || [],
+            description: description || '',
+            isPublic: isPublic !== undefined ? isPublic : true
+        });
+        
+        await newBuild.save();
+        
+        res.status(201).json({ 
+            success: true, 
+            message: 'Build criada com sucesso!',
+            data: newBuild
+        });
+    } catch (error) {
+        console.error('Erro ao criar build:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Erro ao criar build',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
+
+// Listar builds com filtros
+app.get('/api/builds', async (req, res) => {
+    try {
+        const { userId, type, search, isPublic } = req.query;
+        const query = {};
+        
+        if (userId) query.userId = userId;
+        if (type) query.type = type;
+        if (search) query.name = { $regex: search, $options: 'i' };
+        if (isPublic !== undefined) query.isPublic = isPublic === 'true';
+        
+        const builds = await Build.find(query)
+            .populate('userId', 'name email')
+            .sort({ createdAt: -1 });
+        
+        res.json({ 
+            success: true,
+            data: builds 
+        });
+    } catch (error) {
+        console.error('Erro ao buscar builds:', error);
+        res.status(500).json({ 
+            success: false,
+            error: 'Erro ao buscar builds',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
+
+// Obter build específica
+app.get('/api/builds/:id', async (req, res) => {
+    try {
+        const build = await Build.findById(req.params.id).populate('userId', 'name email');
+        
+        if (!build) {
+            return res.status(404).json({ 
+                success: false,
+                error: 'Build não encontrada' 
+            });
+        }
+        
+        res.json({ 
+            success: true,
+            data: build 
+        });
+    } catch (error) {
+        res.status(500).json({ 
+            success: false,
+            error: 'Erro ao buscar build',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
+
+// Atualizar build
+app.put('/api/builds/:id', authenticate, async (req, res) => {
+    try {
+        const build = await Build.findById(req.params.id);
+        if (!build) {
+            return res.status(404).json({ 
+                success: false, 
+                error: 'Build não encontrada' 
+            });
+        }
+        
+        if (build.userId.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ 
+                success: false, 
+                error: 'Não autorizado' 
+            });
+        }
+        
+        const { name, item, description, isPublic, mods } = req.body;
+        
+        build.name = name || build.name;
+        build.item.name = item?.name || build.item.name;
+        build.item.image = item?.image || build.item.image;
+        build.item.stats = item?.stats || build.item.stats;
+        build.description = description || build.description;
+        build.mods = mods || build.mods;
+        build.isPublic = isPublic !== undefined ? isPublic : build.isPublic;
+        build.updatedAt = Date.now();
+        
+        await build.save();
+        
+        res.json({ 
+            success: true, 
+            message: 'Build atualizada com sucesso!',
+            data: build
+        });
+    } catch (error) {
+        console.error('Erro ao atualizar build:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Erro ao atualizar build',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
+
+// Deletar build
+app.delete('/api/builds/:id', authenticate, async (req, res) => {
+    try {
+        const build = await Build.findById(req.params.id);
+        if (!build) {
+            return res.status(404).json({ 
+                success: false, 
+                error: 'Build não encontrada' 
+            });
+        }
+        
+        if (build.userId.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ 
+                success: false, 
+                error: 'Não autorizado' 
+            });
+        }
+        
+        await build.deleteOne();
+        
+        res.json({ 
+            success: true, 
+            message: 'Build excluída com sucesso!' 
+        });
+    } catch (error) {
+        console.error('Erro ao excluir build:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Erro ao excluir build',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
+
 /**************************************/
 /* ROTAS DE ADMIN */
 /**************************************/
@@ -436,7 +694,7 @@ app.post('/api/game/draw', authenticate, checkAdmin, async (req, res) => {
             await settings.save();
         }
 
-        const bets = await Bet.find().populate('userId', 'name');
+        const bets = await Bet.find();
         if (bets.length === 0) {
             return res.status(400).json({ 
                 success: false, 
@@ -449,8 +707,6 @@ app.post('/api/game/draw', authenticate, checkAdmin, async (req, res) => {
         const winningBets = bets.filter(bet => bet.warframeId === winningNumber);
         const prizePool = settings.basePrize + (totalBetAmount * settings.multiplier);
 
-        let winnerData = null;
-
         if (winningBets.length > 0) {
             const totalWinningAmount = winningBets.reduce((sum, bet) => sum + bet.amount, 0);
             
@@ -460,30 +716,9 @@ app.post('/api/game/draw', authenticate, checkAdmin, async (req, res) => {
                     const prize = (bet.amount / totalWinningAmount) * prizePool;
                     user.balance += prize;
                     await user.save();
-                    
-                    // Salva o primeiro ganhador no histórico
-                    if (!winnerData) {
-                        winnerData = {
-                            userId: user._id,
-                            userName: user.name,
-                            amount: prize
-                        };
-                    }
                 }
             }
         }
-
-        // Salva no histórico
-        const warframe = bets.find(b => b.warframeId === winningNumber);
-        const drawRecord = new DrawHistory({
-            winningNumber,
-            warframeName: warframe ? warframe.warframeName : `Warframe ${winningNumber}`,
-            prizePool,
-            winnerId: winnerData ? winnerData.userId : null,
-            winnerName: winnerData ? winnerData.userName : null,
-            winnerAmount: winnerData ? winnerData.amount : null
-        });
-        await drawRecord.save();
 
         settings.lastDraw = new Date();
         await settings.save();
@@ -496,15 +731,13 @@ app.post('/api/game/draw', authenticate, checkAdmin, async (req, res) => {
                 prizePool,
                 winnersCount: winningBets.length,
                 winners: winningBets.map(bet => ({
-                    userId: bet.userId._id,
-                    userName: bet.userId.name,
+                    userId: bet.userId,
                     amount: bet.amount
                 }))
             }
         });
 
     } catch (error) {
-        console.error('Erro ao realizar sorteio:', error);
         res.status(500).json({ 
             success: false, 
             error: 'Erro ao realizar sorteio' 
@@ -512,21 +745,6 @@ app.post('/api/game/draw', authenticate, checkAdmin, async (req, res) => {
     }
 });
 
-// Obter histórico de sorteios
-app.get('/api/game/history', async (req, res) => {
-    try {
-        const history = await DrawHistory.find().sort({ date: -1 }).limit(10);
-        res.json({
-            success: true,
-            data: history
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: 'Erro ao buscar histórico'
-        });
-    }
-});
 
 // Limpar todas as apostas
 app.delete('/api/bets/all', authenticate, checkAdmin, async (req, res) => {
@@ -576,21 +794,6 @@ app.put('/api/game/settings', authenticate, checkAdmin, async (req, res) => {
     }
 });
 
-// Listar todos os usuários (admin)
-app.get('/api/users', authenticate, checkAdmin, async (req, res) => {
-    try {
-        const users = await User.find({}, { password: 0 }).sort({ createdAt: -1 });
-        res.json({
-            success: true,
-            data: users
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: 'Erro ao buscar usuários'
-        });
-    }
-});
 
 // Adicionar saldo a um usuário (admin)
 app.put('/api/users/:email/add-balance', authenticate, checkAdmin, async (req, res) => {
@@ -648,7 +851,6 @@ app.get('/api/bets/all', authenticate, checkAdmin, async (req, res) => {
         });
     }
 });
-
 /**************************************/
 /* ROTAS ESTÁTICAS */
 /**************************************/
@@ -658,6 +860,7 @@ app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'public', 'log
 app.get('/register', (req, res) => res.sendFile(path.join(__dirname, 'public', 'register.html')));
 app.get('/game', (req, res) => res.sendFile(path.join(__dirname, 'public', 'bicho.html')));
 app.get('/tournament', (req, res) => res.sendFile(path.join(__dirname, 'public', 'tournament.html')));
+app.get('/builder', (req, res) => res.sendFile(path.join(__dirname, 'public', 'builder.html')));
 
 /**************************************/
 /* MANIPULADOR DE ERROS */
