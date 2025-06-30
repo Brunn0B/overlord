@@ -237,78 +237,82 @@
         </div>
     </div>
 
-  <script>
-    let API_URL = 'https://overlord-vrvt.onrender.com'; // URL padrão para produção
+<script>
+    // Configuração dinâmica da URL da API
+    let API_BASE_URL = 'http://localhost:3000';
     
-    // Função para carregar a configuração
-    async function loadConfig() {
+    // Detectar ambiente automaticamente
+    async function detectEnvironment() {
         try {
-            // Tenta acessar a URL do Render primeiro
             const response = await fetch('https://overlord-vrvt.onrender.com/api/config');
-            const data = await response.json();
-            API_URL = data.apiUrl;
+            const config = await response.json();
+            API_BASE_URL = config.apiBaseUrl;
+            console.log(`API base URL set to: ${API_BASE_URL}`);
         } catch (error) {
-            // Se falhar, usa localhost para desenvolvimento
             console.log('Using localhost for development');
-            API_URL = 'http://localhost:3000';
         }
     }
 
-    // Elementos DOM
-    const registerForm = document.getElementById('registerForm');
-    const passwordInput = document.getElementById('password');
-    const passwordStrength = document.getElementById('password-strength');
-    
-    // Verificar força da senha em tempo real
-    passwordInput.addEventListener('input', function() {
-        const password = this.value;
-        if (!password) {
-            passwordStrength.style.display = 'none';
-            return;
-        }
+    // Inicialização quando o DOM estiver carregado
+    document.addEventListener('DOMContentLoaded', function() {
+        detectEnvironment();
         
-        passwordStrength.style.display = 'block';
-        const strength = calculatePasswordStrength(password);
+        // Elementos DOM
+        const registerForm = document.getElementById('registerForm');
+        const passwordInput = document.getElementById('password');
+        const passwordStrength = document.getElementById('password-strength');
         
-        if (strength <= 2) {
-            passwordStrength.textContent = 'Senha fraca';
-            passwordStrength.className = 'password-strength strength-weak';
-        } else if (strength <= 4) {
-            passwordStrength.textContent = 'Senha média';
-            passwordStrength.className = 'password-strength strength-medium';
-        } else {
-            passwordStrength.textContent = 'Senha forte';
-            passwordStrength.className = 'password-strength strength-strong';
-        }
+        // Verificar força da senha em tempo real
+        passwordInput.addEventListener('input', function() {
+            const password = this.value;
+            if (!password) {
+                passwordStrength.style.display = 'none';
+                return;
+            }
+            
+            passwordStrength.style.display = 'block';
+            const strength = calculatePasswordStrength(password);
+            
+            if (strength <= 2) {
+                passwordStrength.textContent = 'Senha fraca';
+                passwordStrength.className = 'password-strength strength-weak';
+            } else if (strength <= 4) {
+                passwordStrength.textContent = 'Senha média';
+                passwordStrength.className = 'password-strength strength-medium';
+            } else {
+                passwordStrength.textContent = 'Senha forte';
+                passwordStrength.className = 'password-strength strength-strong';
+            }
+        });
+        
+        // Submit do formulário
+        registerForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Obter valores
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim().toLowerCase();
+            const password = document.getElementById('password').value.trim();
+            const confirmPassword = document.getElementById('confirmPassword').value.trim();
+            
+            // Resetar erros
+            resetErrors();
+            
+            // Validar campos
+            if (!validateForm(name, email, password, confirmPassword)) {
+                return;
+            }
+            
+            // Enviar dados para registro
+            await registerUser(name, email, password);
+        });
+        
+        // Botão de login
+        document.getElementById('loginBtn').addEventListener('click', function() {
+            window.location.href = 'login.html';
+        });
     });
-    
-    // Submit do formulário
-    registerForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        // Obter valores
-        const name = document.getElementById('name').value.trim();
-        const email = document.getElementById('email').value.trim().toLowerCase();
-        const password = document.getElementById('password').value.trim();
-        const confirmPassword = document.getElementById('confirmPassword').value.trim();
-        
-        // Resetar erros
-        resetErrors();
-        
-        // Validar campos
-        if (!validateForm(name, email, password, confirmPassword)) {
-            return;
-        }
-        
-        // Enviar dados para registro
-        await registerUser(name, email, password);
-    });
-    
-    // Botão de login
-    document.getElementById('loginBtn').addEventListener('click', function() {
-        window.location.href = 'login.html';
-    });
-    
+
     // Funções auxiliares
     function calculatePasswordStrength(password) {
         let strength = 0;
@@ -379,8 +383,7 @@
         setLoading(true);
         
         try {
-            // Usa a API_URL definida no início
-            const response = await fetch(`${API_URL}/api/auth/register`, {
+            const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -407,14 +410,17 @@
             
         } catch (error) {
             console.error('Register error:', error);
-            showError('email-error', error.message || 'Erro ao conectar com o servidor');
+            showError('email-error', error.message || 'Falha ao conectar com o servidor');
+            
+            // Tentar novamente com localhost se estiver em desenvolvimento
+            if (API_BASE_URL !== 'http://localhost:3000') {
+                console.log('Tentando conectar com localhost...');
+                API_BASE_URL = 'http://localhost:3000';
+            }
         } finally {
             setLoading(false);
         }
     }
-
-    // Carrega a configuração quando a página é carregada
-    window.addEventListener('DOMContentLoaded', loadConfig);
 </script>
 </body>
-</html>
+</html> 

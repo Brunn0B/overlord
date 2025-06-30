@@ -27,6 +27,15 @@ mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log('✅ Conectado ao MongoDB Atlas'))
     .catch(err => console.error('❌ Erro ao conectar ao MongoDB:', err));
 
+    // Adicione isso no início do server.js, após as configurações iniciais
+app.get('/api/config', (req, res) => {
+    res.json({
+        apiBaseUrl: process.env.NODE_ENV === 'production' 
+            ? 'https://overlord-vrvt.onrender.com' 
+            : 'http://localhost:3000'
+    });
+});
+
 /**************************************/
 /* MODELOS */
 /**************************************/
