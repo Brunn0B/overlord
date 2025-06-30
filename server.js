@@ -9,13 +9,9 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Configuração de CORS
+// Configuração do CORS
 app.use(cors({
-    origin: [
-        'https://overlord-vrvt.onrender.com',
-        'http://localhost:3000',
-        'http://localhost:5500'
-    ],
+    origin:  '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
@@ -24,1221 +20,667 @@ app.use(cors({
 // Middlewares
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
-// Configuração de URL base
-app.use((req, res, next) => {
-    const protocol = req.headers['x-forwarded-proto'] || req.protocol;
-    const host = req.headers['x-forwarded-host'] || req.get('host');
-    res.locals.baseUrl = `${protocol}://${host}`;
-    next();
-});
-
-// Arquivos estáticos
-app.use(express.static(path.join(__dirname, 'public'), {
-    setHeaders: (res, filePath) => {
-        if (filePath.endsWith('.html')) {
-            res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-        } else {
-            res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-        }
-    }
-}));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Conexão com MongoDB
-mongoose.connect(process.env.MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    serverSelectionTimeoutMS: 5000,
-    socketTimeoutMS: 45000,
-    connectTimeoutMS: 30000,
-    retryWrites: true,
-    w: 'majority'
-})
-.then(() => console.log('✅ Connected to MongoDB Atlas'))
-.catch(err => {
-    console.error('❌ MongoDB connection error:', err);
-    process.exit(1);
+mongoose.connect(process.env.MONGODB_URI)
+    .then(() => console.log('✅ Conectado ao MongoDB Atlas'))
+    .catch(err => console.error('❌ Erro ao conectar ao MongoDB:', err));
+
+/**************************************/
+/* MODELOS */
+/**************************************/
+
+// Modelo de Usuário
+const UserSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    balance: { type: Number, default: 5 },
+    isAdmin: { type: Boolean, default: false },
+    createdAt: { type: Date, default: Date.now }
 });
 
-// Schemas
-const UserSchema = new mongoose.Schema({
-    name: { 
-        type: String, 
-        required: [true, 'Name is required'], 
-        trim: true,
-        minlength: [2, 'Name must be at least 2 characters'],
-        maxlength: [50, 'Name cannot exceed 50 characters']
-    },
-    email: { 
-        type: String, 
-        required: [true, 'Email is required'], 
-        unique: true,
-        lowercase: true,
-        trim: true,
-        match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email']
-    },
-    password: { 
-        type: String, 
-        required: [true, 'Password is required'],
-        minlength: [6, 'Password must be at least 6 characters']
-    },
-    balance: { 
-        type: Number, 
-        default: 5, 
-        min: [0, 'Balance cannot be negative']
-    },
-    isAdmin: { 
-        type: Boolean, 
-        default: false 
-    },
-    createdAt: { 
-        type: Date, 
-        default: Date.now 
-    },
-    lastLogin: { 
-        type: Date 
-    },
-    isActive: {
-        type: Boolean,
-        default: true
-    }
-}, { versionKey: false });
-
+// Modelo de Aposta
 const BetSchema = new mongoose.Schema({
-    userId: { 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: 'User', 
-        required: [true, 'User ID is required'] 
-    },
-    warframeId: { 
-        type: Number, 
-        required: [true, 'Warframe ID is required'],
-        min: [1, 'Warframe ID must be at least 1'],
-        max: [20, 'Warframe ID cannot exceed 20']
-    },
-    warframeName: { 
-        type: String, 
-        required: [true, 'Warframe name is required'],
-        trim: true
-    },
-    amount: { 
-        type: Number, 
-        required: [true, 'Bet amount is required'],
-        min: [5, 'Minimum bet is 5 platinum']
-    },
-    tickets: { 
-        type: Number, 
-        required: [true, 'Tickets are required'],
-        min: [1, 'You must buy at least 1 ticket']
-    },
-    date: { 
-        type: Date, 
-        default: Date.now,
-        index: true
-    }
-}, { versionKey: false });
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    warframeId: { type: Number, required: true },
+    warframeName: { type: String, required: true },
+    amount: { type: Number, required: true },
+    tickets: { type: Number, required: true },
+    date: { type: Date, default: Date.now }
+});
 
+// Modelo de Configurações do Jogo
 const GameSettingsSchema = new mongoose.Schema({
-    basePrize: { 
-        type: Number, 
-        default: 100,
-        min: [0, 'Base prize cannot be negative']
-    },
-    multiplier: { 
-        type: Number, 
-        default: 5,
-        min: [1, 'Multiplier must be at least 1']
-    },
-    lastDraw: { 
-        type: Date 
-    },
-    minBet: {
-        type: Number,
-        default: 5,
-        min: [1, 'Minimum bet must be at least 1']
-    },
-    maxBet: {
-        type: Number,
-        default: 1000,
-        min: [5, 'Maximum bet must be at least 5']
-    },
-    maintenanceMode: {
-        type: Boolean,
-        default: false
-    }
-}, { versionKey: false });
+    basePrize: { type: Number, default: 100 },
+    multiplier: { type: Number, default: 5 },
+    lastDraw: { type: Date }
+});
 
+// Modelo de Histórico de Sorteios
 const DrawHistorySchema = new mongoose.Schema({
-    winningNumber: { 
-        type: Number, 
-        required: [true, 'Winning number is required'],
-        min: [1, 'Winning number must be at least 1'],
-        max: [20, 'Winning number cannot exceed 20']
-    },
-    warframeName: { 
-        type: String, 
-        required: [true, 'Warframe name is required'],
-        trim: true
-    },
-    prizePool: { 
-        type: Number, 
-        required: [true, 'Prize pool is required'],
-        min: [0, 'Prize pool cannot be negative']
-    },
-    winnerId: { 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: 'User' 
-    },
-    winnerName: { 
-        type: String,
-        trim: true
-    },
-    winnerAmount: { 
-        type: Number,
-        min: [0, 'Winner amount cannot be negative']
-    },
-    date: { 
-        type: Date, 
-        default: Date.now,
-        index: true
-    },
-    totalBets: {
-        type: Number,
-        default: 0,
-        min: [0, 'Total bets cannot be negative']
-    },
-    totalParticipants: {
-        type: Number,
-        default: 0,
-        min: [0, 'Total participants cannot be negative']
-    }
-}, { versionKey: false });
+    winningNumber: { type: Number, required: true },
+    warframeName: { type: String, required: true },
+    prizePool: { type: Number, required: true },
+    winnerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    winnerName: { type: String },
+    winnerAmount: { type: Number },
+    date: { type: Date, default: Date.now }
+});
 
+// Modelo de Inscrição para Torneio
 const RegistrationSchema = new mongoose.Schema({
-    nickname: { 
-        type: String, 
-        required: [true, 'Nickname is required'],
-        trim: true,
-        minlength: [3, 'Nickname must be at least 3 characters'],
-        maxlength: [20, 'Nickname must be at most 20 characters'],
-        unique: true
-    },
-    mr: { 
-        type: Number, 
-        min: [0, 'Minimum MR is 0'], 
-        max: [40, 'Maximum MR is 40'], 
-        required: [true, 'MR is required'] 
-    },
-    platform: { 
-        type: String, 
-        required: [true, 'Platform is required'],
-        enum: {
-            values: ['PC', 'PlayStation', 'Xbox', 'Switch'],
-            message: 'Invalid platform'
-        }
-    },
-    discord: { 
-        type: String, 
-        required: [true, 'Discord is required'],
-        match: [/^.{3,32}#[0-9]{4}$/, 'Invalid Discord format'],
-        unique: true
-    },
-    protoframe: { 
-        type: String, 
-        required: [true, 'Protoframe is required'],
-        enum: {
-            values: ['Excalibur', 'Mag', 'Volt', 'Loki'],
-            message: 'Invalid protoframe'
-        }
-    },
-    weapons: { 
-        type: [String], 
-        required: [true, 'Weapons are required'],
-        validate: {
-            validator: function(v) {
-                return v.length > 0 && v.length <= 3;
-            },
-            message: 'Select between 1 and 3 weapons'
-        }
-    },
-    event: { 
-        type: String, 
-        default: 'PvP Tournament - Protoframes vs MK1',
-        trim: true
-    },
-    registrationDate: { 
-        type: Date, 
-        default: Date.now,
-        index: true
-    },
-    agreedToRules: { 
-        type: Boolean, 
-        default: true,
-        validate: {
-            validator: function(v) {
-                return v === true;
-            },
-            message: 'You must accept the rules'
-        }
-    },
-    userId: { 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: 'User',
-        index: true,
-        unique: true
-    }
-}, { versionKey: false });
+    nickname: { type: String, required: [true, 'Nickname é obrigatório'] },
+    mr: { type: Number, min: 0, max: 40, required: [true, 'MR é obrigatório'] },
+    platform: { type: String, required: [true, 'Plataforma é obrigatória'] },
+    discord: { type: String, required: [true, 'Discord é obrigatório'] },
+    protoframe: { type: String, required: [true, 'Protoframe é obrigatório'] },
+    weapons: { type: [String], required: [true, 'Armas são obrigatórias'] },
+    event: { type: String, default: 'Torneio PvP - Protoframes vs MK1' },
+    registrationDate: { type: Date, default: Date.now },
+    agreedToRules: { type: Boolean, default: true },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+});
 
-// Models
+// Criando os modelos
 const User = mongoose.model('User', UserSchema);
 const Bet = mongoose.model('Bet', BetSchema);
 const GameSettings = mongoose.model('GameSettings', GameSettingsSchema);
 const DrawHistory = mongoose.model('DrawHistory', DrawHistorySchema);
 const Registration = mongoose.model('Registration', RegistrationSchema);
 
-// Middlewares
+/**************************************/
+/* MIDDLEWARES */
+/**************************************/
+
+// Middleware de autenticação
 const authenticate = async (req, res, next) => {
     try {
-        const authHeader = req.headers.authorization;
-        
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) {
             return res.status(401).json({ 
                 success: false, 
-                error: 'Authentication token not provided',
-                code: 'AUTH_TOKEN_MISSING'
+                error: 'Token não fornecido' 
             });
         }
 
-        const token = authHeader.split(' ')[1];
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = await User.findById(decoded.userId);
         
-        const user = await User.findById(decoded.userId);
-        if (!user || !user.isActive) {
+        if (!req.user) {
             return res.status(401).json({ 
                 success: false, 
-                error: 'User not found or account inactive',
-                code: 'USER_NOT_FOUND'
+                error: 'Usuário não encontrado' 
             });
         }
 
-        user.lastLogin = new Date();
-        await user.save();
-        
-        req.user = user;
         next();
     } catch (error) {
-        console.error('Authentication error:', error);
-        
-        let errorMessage = 'Invalid token';
-        let errorCode = 'INVALID_TOKEN';
-        
-        if (error.name === 'TokenExpiredError') {
-            errorMessage = 'Token expired';
-            errorCode = 'TOKEN_EXPIRED';
-        } else if (error.name === 'JsonWebTokenError') {
-            errorMessage = 'Malformed token';
-            errorCode = 'MALFORMED_TOKEN';
-        }
-        
         res.status(401).json({ 
             success: false, 
-            error: errorMessage,
-            code: errorCode
+            error: 'Token inválido' 
         });
     }
 };
 
+// Middleware de admin
 const checkAdmin = (req, res, next) => {
     if (!req.user.isAdmin) {
         return res.status(403).json({ 
             success: false, 
-            error: 'Admin access required',
-            code: 'ADMIN_ACCESS_REQUIRED'
+            error: 'Acesso negado' 
         });
     }
     next();
 };
 
-const checkMaintenance = async (req, res, next) => {
-    const settings = await GameSettings.findOne();
-    if (settings?.maintenanceMode && !req.user?.isAdmin) {
-        return res.status(503).json({
-            success: false,
-            error: 'Server is under maintenance. Please try again later.',
-            code: 'MAINTENANCE_MODE'
-        });
-    }
-    next();
-};
+/**************************************/
+/* ROTAS DE AUTENTICAÇÃO */
+/**************************************/
 
-const asyncHandler = fn => (req, res, next) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
-};
-
-// Rotas de Configuração
-app.get('/api/config', (req, res) => {
-    res.json({
-        success: true,
-        data: {
-            baseUrl: res.locals.baseUrl,
-            environment: process.env.NODE_ENV || 'development'
+// Registrar usuário
+app.post('/api/auth/register', async (req, res) => {
+    try {
+        const { name, email, password } = req.body;
+        
+        if (!name || !email || !password) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Nome, email e senha são obrigatórios' 
+            });
         }
+
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Email já cadastrado' 
+            });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const isFirstUser = (await User.countDocuments()) === 0;
+        
+        const user = new User({
+            name,
+            email,
+            password: hashedPassword,
+            isAdmin: isFirstUser
+        });
+
+        await user.save();
+
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { 
+            expiresIn: '1d' 
+        });
+
+        res.status(201).json({ 
+            success: true, 
+            data: { 
+                token,
+                user: {
+                    id: user._id,
+                    name: user.name,
+                    email: user.email,
+                    balance: user.balance,
+                    isAdmin: user.isAdmin
+                }
+            }
+        });
+
+    } catch (error) {
+        res.status(500).json({ 
+            success: false, 
+            error: 'Erro ao registrar usuário' 
+        });
+    }
+});
+
+// Login de usuário
+app.post('/api/auth/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Email e senha são obrigatórios' 
+            });
+        }
+
+        const user = await User.findOne({ email: email.toLowerCase() });
+        if (!user) {
+            return res.status(401).json({ 
+                success: false, 
+                error: 'Credenciais inválidas' 
+            });
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(401).json({ 
+                success: false, 
+                error: 'Credenciais inválidas' 
+            });
+        }
+
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { 
+            expiresIn: '24h' 
+        });
+
+        res.json({
+            success: true,
+            data: {
+                token,
+                user: {
+                    id: user._id,
+                    name: user.name,
+                    email: user.email,
+                    balance: user.balance,
+                    isAdmin: user.isAdmin
+                }
+            }
+        });
+
+    } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Erro no servidor ao tentar login' 
+        });
+    }
+});
+
+/**************************************/
+/* ROTAS PROTEGIDAS */
+/**************************************/
+
+// Obter informações do usuário atual
+app.get('/api/user/me', authenticate, async (req, res) => {
+    res.json({ 
+        success: true, 
+        data: req.user 
     });
 });
 
-app.get('/api/status', asyncHandler(async (req, res) => {
-    const settings = await GameSettings.findOne();
-    const usersCount = await User.countDocuments();
-    const activeBets = await Bet.countDocuments();
-    
-    res.json({
-        success: true,
-        data: {
-            status: 'operational',
-            serverTime: new Date().toISOString(),
-            maintenanceMode: settings?.maintenanceMode || false,
-            totalUsers: usersCount,
-            activeBets: activeBets,
-            lastDraw: settings?.lastDraw || null
+// Fazer uma aposta
+app.post('/api/bets', authenticate, async (req, res) => {
+    try {
+        const { warframeId, warframeName, amount, tickets } = req.body;
+
+        if (!warframeId || !warframeName || !amount || !tickets) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Dados da aposta incompletos' 
+            });
         }
-    });
-}));
 
-// Rotas de Autenticação
-app.post('/api/auth/register', asyncHandler(async (req, res) => {
-    const { name, email, password } = req.body;
-    
-    if (!name || !email || !password) {
-        return res.status(400).json({ 
-            success: false, 
-            error: 'Name, email and password are required',
-            code: 'MISSING_FIELDS'
-        });
-    }
-
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-        return res.status(409).json({ 
-            success: false, 
-            error: 'Email already registered',
-            code: 'EMAIL_ALREADY_EXISTS'
-        });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 12);
-    const isFirstUser = (await User.countDocuments()) === 0;
-    
-    const user = new User({
-        name,
-        email,
-        password: hashedPassword,
-        isAdmin: isFirstUser
-    });
-
-    await user.save();
-
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { 
-        expiresIn: '7d' 
-    });
-
-    res.status(201).json({ 
-        success: true, 
-        data: { 
-            token,
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                balance: user.balance,
-                isAdmin: user.isAdmin,
-                createdAt: user.createdAt
-            },
-            baseUrl: res.locals.baseUrl
+        if (amount < 5) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Valor mínimo é 5 platina' 
+            });
         }
-    });
-}));
 
-app.post('/api/auth/login', asyncHandler(async (req, res) => {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-        return res.status(400).json({ 
-            success: false, 
-            error: 'Email and password are required',
-            code: 'MISSING_CREDENTIALS'
-        });
-    }
-
-    const user = await User.findOne({ email: email.toLowerCase() });
-    if (!user || !user.isActive) {
-        return res.status(401).json({ 
-            success: false, 
-            error: 'Invalid credentials',
-            code: 'INVALID_CREDENTIALS'
-        });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-        return res.status(401).json({ 
-            success: false, 
-            error: 'Invalid credentials',
-            code: 'INVALID_CREDENTIALS'
-        });
-    }
-
-    user.lastLogin = new Date();
-    await user.save();
-
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { 
-        expiresIn: '7d' 
-    });
-
-    res.json({
-        success: true,
-        data: {
-            token,
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                balance: user.balance,
-                isAdmin: user.isAdmin,
-                lastLogin: user.lastLogin
-            },
-            baseUrl: res.locals.baseUrl
+        if (amount > req.user.balance) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Saldo insuficiente' 
+            });
         }
-    });
-}));
 
-// Rotas de Usuário
-app.get('/api/user/me', authenticate, asyncHandler(async (req, res) => {
-    res.json({ 
-        success: true, 
-        data: req.user 
-    });
-}));
+        const bet = new Bet({
+            userId: req.user._id,
+            warframeId,
+            warframeName,
+            amount,
+            tickets
+        });
 
-app.put('/api/user/me', authenticate, asyncHandler(async (req, res) => {
-    const { name } = req.body;
-    
-    if (!name) {
-        return res.status(400).json({ 
+        req.user.balance -= amount;
+        await req.user.save();
+        await bet.save();
+
+        res.status(201).json({ 
+            success: true, 
+            data: bet 
+        });
+
+    } catch (error) {
+        res.status(500).json({ 
             success: false, 
-            error: 'Name is required',
-            code: 'NAME_REQUIRED'
+            error: 'Erro ao criar aposta' 
         });
     }
+});
 
-    req.user.name = name;
-    await req.user.save();
-
-    res.json({ 
-        success: true, 
-        data: req.user 
-    });
-}));
-
-app.put('/api/user/change-password', authenticate, asyncHandler(async (req, res) => {
-    const { currentPassword, newPassword } = req.body;
-    
-    if (!currentPassword || !newPassword) {
-        return res.status(400).json({ 
+// Listar apostas do usuário
+app.get('/api/bets', authenticate, async (req, res) => {
+    try {
+        const bets = await Bet.find({ userId: req.user._id }).sort({ date: -1 });
+        res.json({ 
+            success: true, 
+            data: bets 
+        });
+    } catch (error) {
+        res.status(500).json({ 
             success: false, 
-            error: 'Current and new password are required',
-            code: 'PASSWORDS_REQUIRED'
+            error: 'Erro ao buscar apostas' 
         });
     }
+});
 
-    const isMatch = await bcrypt.compare(currentPassword, req.user.password);
-    if (!isMatch) {
-        return res.status(401).json({ 
-            success: false, 
-            error: 'Current password is incorrect',
-            code: 'INCORRECT_PASSWORD'
+/**************************************/
+/* ROTAS PARA TORNEIO PVP */
+/**************************************/
+
+// Registrar para o torneio
+app.post('/api/tournament/register', authenticate, async (req, res) => {
+    try {
+        const { nickname, mr, platform, discord, protoframe, weapons } = req.body;
+        
+        const requiredFields = ['nickname', 'mr', 'platform', 'discord', 'protoframe', 'weapons'];
+        const missingFields = requiredFields.filter(field => !req.body[field]);
+
+        if (missingFields.length > 0) {
+            return res.status(400).json({
+                success: false,
+                error: `Campos obrigatórios faltando: ${missingFields.join(', ')}`
+            });
+        }
+
+        if (!Array.isArray(weapons) || weapons.length === 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'Selecione pelo menos uma arma'
+            });
+        }
+
+        if (mr < 0 || mr > 40) {
+            return res.status(400).json({
+                success: false,
+                error: 'MR deve estar entre 0 e 40'
+            });
+        }
+
+        const existingRegistration = await Registration.findOne({ 
+            $or: [
+                { nickname },
+                { discord },
+                { userId: req.user._id }
+            ]
+        });
+
+        if (existingRegistration) {
+            return res.status(400).json({
+                success: false,
+                error: 'Você já está registrado para este torneio'
+            });
+        }
+
+        const newRegistration = new Registration({
+            nickname,
+            mr,
+            platform,
+            discord,
+            protoframe,
+            weapons,
+            userId: req.user._id
+        });
+
+        await newRegistration.save();
+        
+        res.status(201).json({
+            success: true,
+            message: 'Inscrição realizada com sucesso!',
+            data: newRegistration
+        });
+        
+    } catch (error) {
+        console.error('Erro ao salvar inscrição:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Erro ao processar inscrição',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
+});
 
-    req.user.password = await bcrypt.hash(newPassword, 12);
-    await req.user.save();
-
-    res.json({ 
-        success: true, 
-        message: 'Password changed successfully' 
-    });
-}));
-
-// Rotas de Apostas
-app.post('/api/bets', authenticate, checkMaintenance, asyncHandler(async (req, res) => {
-    const { warframeId, warframeName, amount, tickets } = req.body;
-
-    if (!warframeId || !warframeName || amount === undefined || tickets === undefined) {
-        return res.status(400).json({ 
-            success: false, 
-            error: 'Incomplete bet data',
-            code: 'INCOMPLETE_BET_DATA'
+// Listar inscrições no torneio
+app.get('/api/tournament/registrations', async (req, res) => {
+    try {
+        const registrations = await Registration.find().sort({ registrationDate: -1 });
+        res.json({ 
+            success: true,
+            data: registrations 
+        });
+    } catch (error) {
+        res.status(500).json({ 
+            success: false,
+            error: error.message 
         });
     }
+});
 
-    const settings = await GameSettings.findOne();
-    const minBet = settings?.minBet || 5;
-    const maxBet = settings?.maxBet || 1000;
+/**************************************/
+/* ROTAS DE ADMIN */
+/**************************************/
 
-    if (amount < minBet) {
-        return res.status(400).json({ 
-            success: false, 
-            error: `Minimum bet is ${minBet} platinum`,
-            code: 'MIN_BET_REQUIRED'
-        });
-    }
+// Sortear ganhador do jogo
+app.post('/api/game/draw', authenticate, checkAdmin, async (req, res) => {
+    try {
+        let settings = await GameSettings.findOne();
+        if (!settings) {
+            settings = new GameSettings();
+            await settings.save();
+        }
 
-    if (amount > maxBet) {
-        return res.status(400).json({ 
-            success: false, 
-            error: `Maximum bet is ${maxBet} platinum`,
-            code: 'MAX_BET_EXCEEDED'
-        });
-    }
+        const bets = await Bet.find().populate('userId', 'name');
+        if (bets.length === 0) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Não há apostas para sortear' 
+            });
+        }
 
-    if (amount > req.user.balance) {
-        return res.status(400).json({ 
-            success: false, 
-            error: 'Insufficient balance',
-            code: 'INSUFFICIENT_BALANCE'
-        });
-    }
+        const totalBetAmount = bets.reduce((sum, bet) => sum + bet.amount, 0);
+        const winningNumber = Math.floor(Math.random() * 20) + 1;
+        const winningBets = bets.filter(bet => bet.warframeId === winningNumber);
+        const prizePool = settings.basePrize + (totalBetAmount * settings.multiplier);
 
-    const bet = new Bet({
-        userId: req.user._id,
-        warframeId,
-        warframeName,
-        amount,
-        tickets
-    });
+        let winnerData = null;
 
-    req.user.balance -= amount;
-    
-    await mongoose.connection.transaction(async (session) => {
-        await bet.save({ session });
-        await req.user.save({ session });
-    });
-
-    res.status(201).json({ 
-        success: true, 
-        data: bet,
-        newBalance: req.user.balance
-    });
-}));
-
-app.get('/api/bets', authenticate, asyncHandler(async (req, res) => {
-    const { page = 1, limit = 10 } = req.query;
-    
-    const options = {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        sort: { date: -1 }
-    };
-
-    const result = await Bet.paginate(
-        { userId: req.user._id }, 
-        options
-    );
-
-    res.json({ 
-        success: true, 
-        data: result 
-    });
-}));
-
-app.get('/api/bets/stats', authenticate, asyncHandler(async (req, res) => {
-    const stats = await Bet.aggregate([
-        { $match: { userId: req.user._id } },
-        {
-            $group: {
-                _id: null,
-                totalBets: { $sum: 1 },
-                totalAmount: { $sum: "$amount" },
-                favoriteWarframe: { 
-                    $max: {
-                        count: { $sum: 1 },
-                        warframe: "$warframeName"
+        if (winningBets.length > 0) {
+            const totalWinningAmount = winningBets.reduce((sum, bet) => sum + bet.amount, 0);
+            
+            for (const bet of winningBets) {
+                const user = await User.findById(bet.userId);
+                if (user) {
+                    const prize = (bet.amount / totalWinningAmount) * prizePool;
+                    user.balance += prize;
+                    await user.save();
+                    
+                    // Salva o primeiro ganhador no histórico
+                    if (!winnerData) {
+                        winnerData = {
+                            userId: user._id,
+                            userName: user.name,
+                            amount: prize
+                        };
                     }
                 }
             }
-        },
-        {
-            $project: {
-                _id: 0,
-                totalBets: 1,
-                totalAmount: 1,
-                favoriteWarframe: "$favoriteWarframe.warframe"
-            }
         }
-    ]);
 
-    res.json({ 
-        success: true, 
-        data: stats[0] || {
-            totalBets: 0,
-            totalAmount: 0,
-            favoriteWarframe: null
-        }
-    });
-}));
-
-// Rotas de Torneio
-app.post('/api/tournament/register', authenticate, asyncHandler(async (req, res) => {
-    const { nickname, mr, platform, discord, protoframe, weapons } = req.body;
-    
-    const requiredFields = ['nickname', 'mr', 'platform', 'discord', 'protoframe', 'weapons'];
-    const missingFields = requiredFields.filter(field => !req.body[field]);
-
-    if (missingFields.length > 0) {
-        return res.status(400).json({
-            success: false,
-            error: `Missing required fields: ${missingFields.join(', ')}`,
-            code: 'MISSING_FIELDS'
-        });
-    }
-
-    if (!Array.isArray(weapons) || weapons.length === 0 || weapons.length > 3) {
-        return res.status(400).json({
-            success: false,
-            error: 'Select between 1 and 3 weapons',
-            code: 'INVALID_WEAPONS'
-        });
-    }
-
-    if (mr < 0 || mr > 40) {
-        return res.status(400).json({
-            success: false,
-            error: 'MR must be between 0 and 40',
-            code: 'INVALID_MR'
-        });
-    }
-
-    const existingRegistration = await Registration.findOne({ 
-        $or: [
-            { nickname },
-            { discord },
-            { userId: req.user._id }
-        ]
-    });
-
-    if (existingRegistration) {
-        return res.status(409).json({
-            success: false,
-            error: 'You are already registered for this tournament',
-            code: 'ALREADY_REGISTERED'
-        });
-    }
-
-    const newRegistration = new Registration({
-        nickname,
-        mr,
-        platform,
-        discord,
-        protoframe,
-        weapons,
-        userId: req.user._id
-    });
-
-    await newRegistration.save();
-    
-    res.status(201).json({
-        success: true,
-        message: 'Registration successful!',
-        data: newRegistration
-    });
-}));
-
-app.get('/api/tournament/registrations', asyncHandler(async (req, res) => {
-    const { page = 1, limit = 20, platform, minMr, maxMr } = req.query;
-    
-    const filter = {};
-    
-    if (platform) {
-        filter.platform = platform;
-    }
-    
-    if (minMr || maxMr) {
-        filter.mr = {};
-        if (minMr) filter.mr.$gte = parseInt(minMr);
-        if (maxMr) filter.mr.$lte = parseInt(maxMr);
-    }
-
-    const options = {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        sort: { registrationDate: -1 }
-    };
-
-    const result = await Registration.paginate(filter, options);
-    
-    res.json({ 
-        success: true,
-        data: result 
-    });
-}));
-
-app.get('/api/tournament/stats', asyncHandler(async (req, res) => {
-    const stats = await Registration.aggregate([
-        {
-            $group: {
-                _id: null,
-                totalRegistrations: { $sum: 1 },
-                platforms: { 
-                    $push: "$platform"
-                },
-                protoframes: {
-                    $push: "$protoframe"
-                },
-                averageMr: { $avg: "$mr" }
-            }
-        },
-        {
-            $project: {
-                _id: 0,
-                totalRegistrations: 1,
-                platforms: {
-                    $reduce: {
-                        input: "$platforms",
-                        initialValue: {},
-                        in: {
-                            $mergeObjects: [
-                                "$$value",
-                                { [$$this]: { $add: [ { $ifNull: [ "$$value.$$this", 0 ] }, 1 ] } }
-                            ]
-                        }
-                    }
-                },
-                protoframes: {
-                    $reduce: {
-                        input: "$protoframes",
-                        initialValue: {},
-                        in: {
-                            $mergeObjects: [
-                                "$$value",
-                                { [$$this]: { $add: [ { $ifNull: [ "$$value.$$this", 0 ] }, 1 ] } }
-                            ]
-                        }
-                    }
-                },
-                averageMr: { $round: ["$averageMr", 2] }
-            }
-        }
-    ]);
-
-    res.json({
-        success: true,
-        data: stats[0] || {
-            totalRegistrations: 0,
-            platforms: {},
-            protoframes: {},
-            averageMr: 0
-        }
-    });
-}));
-
-// Rotas de Jogo
-app.post('/api/game/draw', authenticate, checkAdmin, asyncHandler(async (req, res) => {
-    let settings = await GameSettings.findOne();
-    if (!settings) {
-        settings = new GameSettings();
-        await settings.save();
-    }
-
-    const bets = await Bet.find().populate('userId', 'name email');
-    if (bets.length === 0) {
-        return res.status(400).json({ 
-            success: false, 
-            error: 'No bets to draw',
-            code: 'NO_BETS_TO_DRAW'
-        });
-    }
-
-    const totalBetAmount = bets.reduce((sum, bet) => sum + bet.amount, 0);
-    const totalParticipants = new Set(bets.map(bet => bet.userId.toString())).size;
-    
-    const winningNumber = Math.floor(Math.random() * 20) + 1;
-    const winningBets = bets.filter(bet => bet.warframeId === winningNumber);
-    
-    const prizePool = settings.basePrize + (totalBetAmount * settings.multiplier);
-
-    let winnerData = null;
-    let totalWinningAmount = 0;
-
-    if (winningBets.length > 0) {
-        totalWinningAmount = winningBets.reduce((sum, bet) => sum + bet.amount, 0);
-        
-        for (const bet of winningBets) {
-            const prize = (bet.amount / totalWinningAmount) * prizePool;
-            
-            await User.findByIdAndUpdate(
-                bet.userId, 
-                { $inc: { balance: prize } }
-            );
-            
-            if (!winnerData) {
-                winnerData = {
-                    userId: bet.userId._id,
-                    userName: bet.userId.name,
-                    amount: prize
-                };
-            }
-        }
-    }
-
-    const warframe = bets.find(b => b.warframeId === winningNumber);
-    const drawRecord = new DrawHistory({
-        winningNumber,
-        warframeName: warframe ? warframe.warframeName : `Warframe ${winningNumber}`,
-        prizePool,
-        winnerId: winnerData ? winnerData.userId : null,
-        winnerName: winnerData ? winnerData.userName : null,
-        winnerAmount: winnerData ? winnerData.amount : null,
-        totalBets: totalBetAmount,
-        totalParticipants
-    });
-
-    await mongoose.connection.transaction(async (session) => {
-        settings.lastDraw = new Date();
-        await settings.save({ session });
-        await drawRecord.save({ session });
-        await Bet.deleteMany({}, { session });
-    });
-
-    res.json({ 
-        success: true, 
-        data: {
+        // Salva no histórico
+        const warframe = bets.find(b => b.warframeId === winningNumber);
+        const drawRecord = new DrawHistory({
             winningNumber,
             warframeName: warframe ? warframe.warframeName : `Warframe ${winningNumber}`,
             prizePool,
-            winnersCount: winningBets.length,
-            winners: winningBets.map(bet => ({
-                userId: bet.userId._id,
-                userName: bet.userId.name,
-                amount: bet.amount,
-                prize: (bet.amount / totalWinningAmount) * prizePool
-            })),
-            totalBets: totalBetAmount,
-            totalParticipants
-        }
-    });
-}));
+            winnerId: winnerData ? winnerData.userId : null,
+            winnerName: winnerData ? winnerData.userName : null,
+            winnerAmount: winnerData ? winnerData.amount : null
+        });
+        await drawRecord.save();
 
-app.get('/api/game/history', asyncHandler(async (req, res) => {
-    const { page = 1, limit = 10 } = req.query;
-    
-    const options = {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        sort: { date: -1 }
-    };
+        settings.lastDraw = new Date();
+        await settings.save();
+        await Bet.deleteMany();
 
-    const result = await DrawHistory.paginate({}, options);
-    
-    res.json({
-        success: true,
-        data: result
-    });
-}));
+        res.json({ 
+            success: true, 
+            data: {
+                winningNumber,
+                prizePool,
+                winnersCount: winningBets.length,
+                winners: winningBets.map(bet => ({
+                    userId: bet.userId._id,
+                    userName: bet.userId.name,
+                    amount: bet.amount
+                }))
+            }
+        });
 
-app.get('/api/game/history/:id', asyncHandler(async (req, res) => {
-    const draw = await DrawHistory.findById(req.params.id);
-    
-    if (!draw) {
-        return res.status(404).json({
-            success: false,
-            error: 'Draw not found',
-            code: 'DRAW_NOT_FOUND'
+    } catch (error) {
+        console.error('Erro ao realizar sorteio:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Erro ao realizar sorteio' 
         });
     }
-
-    const winningBets = await Bet.find({
-        warframeId: draw.winningNumber,
-        date: { $lt: draw.date }
-    }).populate('userId', 'name email');
-
-    res.json({
-        success: true,
-        data: {
-            draw,
-            winningBets
-        }
-    });
-}));
-
-app.put('/api/game/settings', authenticate, checkAdmin, asyncHandler(async (req, res) => {
-    const { basePrize, multiplier, minBet, maxBet, maintenanceMode } = req.body;
-
-    let settings = await GameSettings.findOne();
-    if (!settings) {
-        settings = new GameSettings();
-    }
-
-    if (basePrize !== undefined) settings.basePrize = basePrize;
-    if (multiplier !== undefined) settings.multiplier = multiplier;
-    if (minBet !== undefined) settings.minBet = minBet;
-    if (maxBet !== undefined) settings.maxBet = maxBet;
-    if (maintenanceMode !== undefined) settings.maintenanceMode = maintenanceMode;
-
-    await settings.save();
-
-    res.json({ 
-        success: true, 
-        data: settings 
-    });
-}));
-
-// Rotas de Administração
-app.get('/api/users', authenticate, checkAdmin, asyncHandler(async (req, res) => {
-    const { page = 1, limit = 20, search, sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
-    
-    const filter = {};
-    
-    if (search) {
-        filter.$or = [
-            { name: { $regex: search, $options: 'i' } },
-            { email: { $regex: search, $options: 'i' } }
-        ];
-    }
-
-    const options = {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        sort: { [sortBy]: sortOrder === 'desc' ? -1 : 1 },
-        select: '-password'
-    };
-
-    const result = await User.paginate(filter, options);
-    
-    res.json({
-        success: true,
-        data: result
-    });
-}));
-
-app.get('/api/users/:id', authenticate, checkAdmin, asyncHandler(async (req, res) => {
-    const user = await User.findById(req.params.id).select('-password');
-    
-    if (!user) {
-        return res.status(404).json({
-            success: false,
-            error: 'User not found',
-            code: 'USER_NOT_FOUND'
-        });
-    }
-
-    const bets = await Bet.find({ userId: user._id })
-        .sort({ date: -1 })
-        .limit(5);
-
-    res.json({
-        success: true,
-        data: {
-            user,
-            recentBets: bets
-        }
-    });
-}));
-
-app.put('/api/users/:id/add-balance', authenticate, checkAdmin, asyncHandler(async (req, res) => {
-    const { amount, reason } = req.body;
-    
-    if (!amount || amount <= 0) {
-        return res.status(400).json({
-            success: false,
-            error: 'Invalid amount to add',
-            code: 'INVALID_AMOUNT'
-        });
-    }
-
-    const user = await User.findByIdAndUpdate(
-        req.params.id,
-        { $inc: { balance: amount } },
-        { new: true }
-    ).select('-password');
-
-    if (!user) {
-        return res.status(404).json({
-            success: false,
-            error: 'User not found',
-            code: 'USER_NOT_FOUND'
-        });
-    }
-
-    res.json({
-        success: true,
-        message: `Balance added successfully to ${user.email}`,
-        data: user,
-        transaction: {
-            amount,
-            reason,
-            date: new Date()
-        }
-    });
-}));
-
-app.put('/api/users/:id/make-admin', authenticate, checkAdmin, asyncHandler(async (req, res) => {
-    const user = await User.findByIdAndUpdate(
-        req.params.id,
-        { $set: { isAdmin: true } },
-        { new: true }
-    ).select('-password');
-
-    if (!user) {
-        return res.status(404).json({
-            success: false,
-            error: 'User not found',
-            code: 'USER_NOT_FOUND'
-        });
-    }
-
-    res.json({
-        success: true,
-        message: `${user.email} is now an admin`,
-        data: user
-    });
-}));
-
-app.put('/api/users/:id/remove-admin', authenticate, checkAdmin, asyncHandler(async (req, res) => {
-    if (req.user._id.toString() === req.params.id) {
-        return res.status(400).json({
-            success: false,
-            error: 'You cannot remove your own admin privileges',
-            code: 'SELF_ADMIN_REMOVAL'
-        });
-    }
-
-    const user = await User.findByIdAndUpdate(
-        req.params.id,
-        { $set: { isAdmin: false } },
-        { new: true }
-    ).select('-password');
-
-    if (!user) {
-        return res.status(404).json({
-            success: false,
-            error: 'User not found',
-            code: 'USER_NOT_FOUND'
-        });
-    }
-
-    res.json({
-        success: true,
-        message: `${user.email} is no longer an admin`,
-        data: user
-    });
-}));
-
-app.delete('/api/users/:id', authenticate, checkAdmin, asyncHandler(async (req, res) => {
-    if (req.user._id.toString() === req.params.id) {
-        return res.status(400).json({
-            success: false,
-            error: 'You cannot delete your own account',
-            code: 'SELF_DELETION'
-        });
-    }
-
-    const result = await User.deleteOne({ _id: req.params.id });
-    
-    if (result.deletedCount === 0) {
-        return res.status(404).json({
-            success: false,
-            error: 'User not found',
-            code: 'USER_NOT_FOUND'
-        });
-    }
-
-    res.json({ 
-        success: true, 
-        message: 'User deleted successfully'
-    });
-}));
-
-app.get('/api/bets/all', authenticate, checkAdmin, asyncHandler(async (req, res) => {
-    const { page = 1, limit = 20, userId, warframeId } = req.query;
-    
-    const filter = {};
-    
-    if (userId) {
-        filter.userId = userId;
-    }
-    
-    if (warframeId) {
-        filter.warframeId = parseInt(warframeId);
-    }
-
-    const options = {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        sort: { date: -1 },
-        populate: 'userId'
-    };
-
-    const result = await Bet.paginate(filter, options);
-    
-    res.json({
-        success: true,
-        data: result
-    });
-}));
-
-app.delete('/api/bets/all', authenticate, checkAdmin, asyncHandler(async (req, res) => {
-    const result = await Bet.deleteMany();
-    
-    res.json({ 
-        success: true, 
-        message: `All bets (${result.deletedCount}) have been removed`,
-        deletedCount: result.deletedCount
-    });
-}));
-
-// Rota de fallback
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Manipulador de erros
+// Obter histórico de sorteios
+app.get('/api/game/history', async (req, res) => {
+    try {
+        const history = await DrawHistory.find().sort({ date: -1 }).limit(10);
+        res.json({
+            success: true,
+            data: history
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: 'Erro ao buscar histórico'
+        });
+    }
+});
+
+// Limpar todas as apostas
+app.delete('/api/bets/all', authenticate, checkAdmin, async (req, res) => {
+    try {
+        await Bet.deleteMany();
+        res.json({ 
+            success: true, 
+            message: 'Todas as apostas foram removidas' 
+        });
+    } catch (error) {
+        res.status(500).json({ 
+            success: false, 
+            error: 'Erro ao limpar apostas' 
+        });
+    }
+});
+
+// Atualizar configurações do jogo
+app.put('/api/game/settings', authenticate, checkAdmin, async (req, res) => {
+    try {
+        const { basePrize, multiplier } = req.body;
+
+        let settings = await GameSettings.findOne();
+        if (!settings) {
+            settings = new GameSettings();
+        }
+
+        if (basePrize !== undefined) {
+            settings.basePrize = basePrize;
+        }
+
+        if (multiplier !== undefined) {
+            settings.multiplier = multiplier;
+        }
+
+        await settings.save();
+
+        res.json({ 
+            success: true, 
+            data: settings 
+        });
+    } catch (error) {
+        res.status(500).json({ 
+            success: false, 
+            error: 'Erro ao atualizar configurações' 
+        });
+    }
+});
+
+// Listar todos os usuários (admin)
+app.get('/api/users', authenticate, checkAdmin, async (req, res) => {
+    try {
+        const users = await User.find({}, { password: 0 }).sort({ createdAt: -1 });
+        res.json({
+            success: true,
+            data: users
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: 'Erro ao buscar usuários'
+        });
+    }
+});
+
+// Adicionar saldo a um usuário (admin)
+app.put('/api/users/:email/add-balance', authenticate, checkAdmin, async (req, res) => {
+    try {
+        const { amount } = req.body;
+        const userEmail = req.params.email.toLowerCase();
+
+        if (!amount || amount <= 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'Valor inválido para adicionar saldo'
+            });
+        }
+
+        const user = await User.findOneAndUpdate(
+            { email: userEmail },
+            { $inc: { balance: amount } },
+            { new: true }
+        );
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                error: 'Usuário não encontrado'
+            });
+        }
+
+        res.json({
+            success: true,
+            message: `Saldo adicionado com sucesso para ${user.email}`,
+            data: user
+        });
+
+    } catch (error) {
+        console.error('Erro ao adicionar saldo:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Erro ao adicionar saldo'
+        });
+    }
+});
+
+// Rota para obter todas as apostas (admin)
+app.get('/api/bets/all', authenticate, checkAdmin, async (req, res) => {
+    try {
+        const bets = await Bet.find().populate('userId', 'name email');
+        res.json({
+            success: true,
+            data: bets
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: 'Erro ao buscar apostas'
+        });
+    }
+});
+
+/**************************************/
+/* ROTAS ESTÁTICAS */
+/**************************************/
+
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'public', 'login.html')));
+app.get('/register', (req, res) => res.sendFile(path.join(__dirname, 'public', 'register.html')));
+app.get('/game', (req, res) => res.sendFile(path.join(__dirname, 'public', 'bicho.html')));
+app.get('/tournament', (req, res) => res.sendFile(path.join(__dirname, 'public', 'tournament.html')));
+
+/**************************************/
+/* MANIPULADOR DE ERROS */
+/**************************************/
+
 app.use((err, req, res, next) => {
-    console.error('💥 Error:', err);
+    console.error('💥 Erro:', err);
     res.status(500).json({ 
         success: false, 
-        error: 'Internal server error',
+        error: 'Erro interno no servidor',
         details: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
 });
 
-// Inicialização do servidor
-const server = app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`🔗 Access: http://localhost:${PORT}`);
+/**************************************/
+/* INICIAR SERVIDOR */
+/**************************************/
+
+app.listen(PORT, () => {
+    console.log(`🚀 Servidor rodando na porta ${PORT}`);
+    console.log(`🔗 Acesse: http://localhost:${PORT}`);
 });
 
-// Manipuladores de eventos do processo
 process.on('unhandledRejection', (err) => {
-    console.error('💥 Unhandled rejection:', err);
-    server.close(() => process.exit(1));
-});
-
-process.on('uncaughtException', (err) => {
-    console.error('💥 Uncaught exception:', err);
-    server.close(() => process.exit(1));
-});
-
-process.on('SIGTERM', () => {
-    console.log('🛑 SIGTERM received. Shutting down gracefully...');
-    server.close(() => {
-        console.log('🔴 Server terminated');
-        process.exit(0);
-    });
-});
-
-process.on('SIGINT', () => {
-    console.log('🛑 SIGINT received. Shutting down gracefully...');
-    server.close(() => {
-        console.log('🔴 Server terminated');
-        process.exit(0);
-    });
+    console.error('💥 Erro não tratado:', err);
 });
