@@ -603,41 +603,21 @@ app.get('/api/bets', authenticate, asyncHandler(async (req, res) => {
     });
 }));
 
-app.get('/api/bets/stats', authenticate, asyncHandler(async (req, res) => {
+app.get("/api/bets/stats", authenticate, asyncHandler(async (req, res) => {
     const stats = await Bet.aggregate([
         { $match: { userId: req.user._id } },
         {
             $group: {
-                _id: null,
-                totalBets: { $sum: 1 },
-                totalAmount: { $sum: "$amount" },
-                favoriteWarframe: { 
-                    $max: {
-                        count: { $sum: 1 },
-                        warframe: "$warframeName"
-                    }
-                }
-            }
-        },
-        {
-            $project: {
-                _id: 0,
-                totalBets: 1,
-                totalAmount: 1,
-                favoriteWarframe: "$favoriteWarframe.warframe"
+                _id: null, // Agrupa todos os documentos para o usuário atual
+                totalAmountBet: { $sum: "$amount" },
+                totalTicketsBought: { $sum: "$tickets" },
+                // Adicione outras estatísticas que você deseja calcular aqui
             }
         }
     ]);
-
-    res.json({ 
-        success: true, 
-        data: stats[0] || {
-            totalBets: 0,
-            totalAmount: 0,
-            favoriteWarframe: null
-        }
-    });
+    res.json({ success: true, data: stats });
 }));
+
 
 // Tournament Routes
 app.post('/api/tournament/register', authenticate, asyncHandler(async (req, res) => {
