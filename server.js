@@ -9,8 +9,7 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Enhanced CORS Configuration
-// Substitua a configuração de CORS por esta:
+// Configuração de CORS
 app.use(cors({
     origin: [
         'https://overlord-vrvt.onrender.com',
@@ -22,26 +21,19 @@ app.use(cors({
     credentials: true
 }));
 
-// Adicione esta rota no início para configurar a URL base dinamicamente
-app.use((req, res, next) => {
-    const protocol = req.headers['x-forwarded-proto'] || req.protocol;
-    const host = req.headers['x-forwarded-host'] || req.get('host');
-    req.baseUrl = `${protocol}://${host}`;
-    next();
-});
-
-// Adicione esta rota para fornecer a configuração ao frontend
-app.get('/api/config', (req, res) => {
-    res.json({
-        apiUrl: req.baseUrl
-    });
-});
-
-// Optimized Middlewares
+// Middlewares
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Static files with cache control
+// Configuração de URL base
+app.use((req, res, next) => {
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+    const host = req.headers['x-forwarded-host'] || req.get('host');
+    res.locals.baseUrl = `${protocol}://${host}`;
+    next();
+});
+
+// Arquivos estáticos
 app.use(express.static(path.join(__dirname, 'public'), {
     setHeaders: (res, filePath) => {
         if (filePath.endsWith('.html')) {
@@ -52,7 +44,7 @@ app.use(express.static(path.join(__dirname, 'public'), {
     }
 }));
 
-// Robust MongoDB Connection
+// Conexão com MongoDB
 mongoose.connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
@@ -68,12 +60,18 @@ mongoose.connect(process.env.MONGODB_URI, {
     process.exit(1);
 });
 
-// Database Models
+// Schemas
 const UserSchema = new mongoose.Schema({
-    name: { type: String, required: true, trim: true },
+    name: { 
+        type: String, 
+        required: [true, 'Name is required'], 
+        trim: true,
+        minlength: [2, 'Name must be at least 2 characters'],
+        maxlength: [50, 'Name cannot exceed 50 characters']
+    },
     email: { 
         type: String, 
-        required: true, 
+        required: [true, 'Email is required'], 
         unique: true,
         lowercase: true,
         trim: true,
@@ -81,40 +79,56 @@ const UserSchema = new mongoose.Schema({
     },
     password: { 
         type: String, 
-        required: true,
+        required: [true, 'Password is required'],
         minlength: [6, 'Password must be at least 6 characters']
     },
-    balance: { type: Number, default: 5, min: 0 },
-    isAdmin: { type: Boolean, default: false },
-    createdAt: { type: Date, default: Date.now },
-    lastLogin: { type: Date }
+    balance: { 
+        type: Number, 
+        default: 5, 
+        min: [0, 'Balance cannot be negative']
+    },
+    isAdmin: { 
+        type: Boolean, 
+        default: false 
+    },
+    createdAt: { 
+        type: Date, 
+        default: Date.now 
+    },
+    lastLogin: { 
+        type: Date 
+    },
+    isActive: {
+        type: Boolean,
+        default: true
+    }
 }, { versionKey: false });
 
 const BetSchema = new mongoose.Schema({
     userId: { 
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'User', 
-        required: true 
+        required: [true, 'User ID is required'] 
     },
     warframeId: { 
         type: Number, 
-        required: true,
-        min: 1,
-        max: 20
+        required: [true, 'Warframe ID is required'],
+        min: [1, 'Warframe ID must be at least 1'],
+        max: [20, 'Warframe ID cannot exceed 20']
     },
     warframeName: { 
         type: String, 
-        required: true,
+        required: [true, 'Warframe name is required'],
         trim: true
     },
     amount: { 
         type: Number, 
-        required: true,
+        required: [true, 'Bet amount is required'],
         min: [5, 'Minimum bet is 5 platinum']
     },
     tickets: { 
         type: Number, 
-        required: true,
+        required: [true, 'Tickets are required'],
         min: [1, 'You must buy at least 1 ticket']
     },
     date: { 
@@ -140,30 +154,36 @@ const GameSettingsSchema = new mongoose.Schema({
     },
     minBet: {
         type: Number,
-        default: 5
+        default: 5,
+        min: [1, 'Minimum bet must be at least 1']
     },
     maxBet: {
         type: Number,
-        default: 1000
+        default: 1000,
+        min: [5, 'Maximum bet must be at least 5']
+    },
+    maintenanceMode: {
+        type: Boolean,
+        default: false
     }
 }, { versionKey: false });
 
 const DrawHistorySchema = new mongoose.Schema({
     winningNumber: { 
         type: Number, 
-        required: true,
-        min: 1,
-        max: 20
+        required: [true, 'Winning number is required'],
+        min: [1, 'Winning number must be at least 1'],
+        max: [20, 'Winning number cannot exceed 20']
     },
     warframeName: { 
         type: String, 
-        required: true,
+        required: [true, 'Warframe name is required'],
         trim: true
     },
     prizePool: { 
         type: Number, 
-        required: true,
-        min: 0
+        required: [true, 'Prize pool is required'],
+        min: [0, 'Prize pool cannot be negative']
     },
     winnerId: { 
         type: mongoose.Schema.Types.ObjectId, 
@@ -175,7 +195,7 @@ const DrawHistorySchema = new mongoose.Schema({
     },
     winnerAmount: { 
         type: Number,
-        min: 0
+        min: [0, 'Winner amount cannot be negative']
     },
     date: { 
         type: Date, 
@@ -184,11 +204,13 @@ const DrawHistorySchema = new mongoose.Schema({
     },
     totalBets: {
         type: Number,
-        default: 0
+        default: 0,
+        min: [0, 'Total bets cannot be negative']
     },
     totalParticipants: {
         type: Number,
-        default: 0
+        default: 0,
+        min: [0, 'Total participants cannot be negative']
     }
 }, { versionKey: false });
 
@@ -198,7 +220,8 @@ const RegistrationSchema = new mongoose.Schema({
         required: [true, 'Nickname is required'],
         trim: true,
         minlength: [3, 'Nickname must be at least 3 characters'],
-        maxlength: [20, 'Nickname must be at most 20 characters']
+        maxlength: [20, 'Nickname must be at most 20 characters'],
+        unique: true
     },
     mr: { 
         type: Number, 
@@ -217,7 +240,8 @@ const RegistrationSchema = new mongoose.Schema({
     discord: { 
         type: String, 
         required: [true, 'Discord is required'],
-        match: [/^.{3,32}#[0-9]{4}$/, 'Invalid Discord format']
+        match: [/^.{3,32}#[0-9]{4}$/, 'Invalid Discord format'],
+        unique: true
     },
     protoframe: { 
         type: String, 
@@ -260,10 +284,12 @@ const RegistrationSchema = new mongoose.Schema({
     userId: { 
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'User',
-        index: true
+        index: true,
+        unique: true
     }
 }, { versionKey: false });
 
+// Models
 const User = mongoose.model('User', UserSchema);
 const Bet = mongoose.model('Bet', BetSchema);
 const GameSettings = mongoose.model('GameSettings', GameSettingsSchema);
@@ -286,11 +312,11 @@ const authenticate = async (req, res, next) => {
         const token = authHeader.split(' ')[1];
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         
-        const user = await User.findById(decoded.userId).select('-password');
-        if (!user) {
+        const user = await User.findById(decoded.userId);
+        if (!user || !user.isActive) {
             return res.status(401).json({ 
                 success: false, 
-                error: 'User not found',
+                error: 'User not found or account inactive',
                 code: 'USER_NOT_FOUND'
             });
         }
@@ -333,20 +359,24 @@ const checkAdmin = (req, res, next) => {
     next();
 };
 
+const checkMaintenance = async (req, res, next) => {
+    const settings = await GameSettings.findOne();
+    if (settings?.maintenanceMode && !req.user?.isAdmin) {
+        return res.status(503).json({
+            success: false,
+            error: 'Server is under maintenance. Please try again later.',
+            code: 'MAINTENANCE_MODE'
+        });
+    }
+    next();
+};
+
 const asyncHandler = fn => (req, res, next) => {
     Promise.resolve(fn(req, res, next)).catch(next);
 };
 
-// Base URL middleware
-app.use((req, res, next) => {
-    const protocol = req.headers['x-forwarded-proto'] || req.protocol;
-    const host = req.headers['x-forwarded-host'] || req.get('host');
-    res.locals.baseUrl = `${protocol}://${host}`;
-    next();
-});
-
-// Client configuration endpoint
-app.get('/api/client-config', (req, res) => {
+// Rotas de Configuração
+app.get('/api/config', (req, res) => {
     res.json({
         success: true,
         data: {
@@ -356,7 +386,25 @@ app.get('/api/client-config', (req, res) => {
     });
 });
 
-// Authentication Routes
+app.get('/api/status', asyncHandler(async (req, res) => {
+    const settings = await GameSettings.findOne();
+    const usersCount = await User.countDocuments();
+    const activeBets = await Bet.countDocuments();
+    
+    res.json({
+        success: true,
+        data: {
+            status: 'operational',
+            serverTime: new Date().toISOString(),
+            maintenanceMode: settings?.maintenanceMode || false,
+            totalUsers: usersCount,
+            activeBets: activeBets,
+            lastDraw: settings?.lastDraw || null
+        }
+    });
+}));
+
+// Rotas de Autenticação
 app.post('/api/auth/register', asyncHandler(async (req, res) => {
     const { name, email, password } = req.body;
     
@@ -422,7 +470,7 @@ app.post('/api/auth/login', asyncHandler(async (req, res) => {
     }
 
     const user = await User.findOne({ email: email.toLowerCase() });
-    if (!user) {
+    if (!user || !user.isActive) {
         return res.status(401).json({ 
             success: false, 
             error: 'Invalid credentials',
@@ -463,7 +511,7 @@ app.post('/api/auth/login', asyncHandler(async (req, res) => {
     });
 }));
 
-// User Routes
+// Rotas de Usuário
 app.get('/api/user/me', authenticate, asyncHandler(async (req, res) => {
     res.json({ 
         success: true, 
@@ -520,8 +568,8 @@ app.put('/api/user/change-password', authenticate, asyncHandler(async (req, res)
     });
 }));
 
-// Betting Routes
-app.post('/api/bets', authenticate, asyncHandler(async (req, res) => {
+// Rotas de Apostas
+app.post('/api/bets', authenticate, checkMaintenance, asyncHandler(async (req, res) => {
     const { warframeId, warframeName, amount, tickets } = req.body;
 
     if (!warframeId || !warframeName || amount === undefined || tickets === undefined) {
@@ -638,7 +686,7 @@ app.get('/api/bets/stats', authenticate, asyncHandler(async (req, res) => {
     });
 }));
 
-// Tournament Routes
+// Rotas de Torneio
 app.post('/api/tournament/register', authenticate, asyncHandler(async (req, res) => {
     const { nickname, mr, platform, discord, protoframe, weapons } = req.body;
     
@@ -792,7 +840,7 @@ app.get('/api/tournament/stats', asyncHandler(async (req, res) => {
     });
 }));
 
-// Game Routes
+// Rotas de Jogo
 app.post('/api/game/draw', authenticate, checkAdmin, asyncHandler(async (req, res) => {
     let settings = await GameSettings.findOne();
     if (!settings) {
@@ -921,18 +969,8 @@ app.get('/api/game/history/:id', asyncHandler(async (req, res) => {
     });
 }));
 
-app.delete('/api/bets/all', authenticate, checkAdmin, asyncHandler(async (req, res) => {
-    const result = await Bet.deleteMany();
-    
-    res.json({ 
-        success: true, 
-        message: `All bets (${result.deletedCount}) have been removed`,
-        deletedCount: result.deletedCount
-    });
-}));
-
 app.put('/api/game/settings', authenticate, checkAdmin, asyncHandler(async (req, res) => {
-    const { basePrize, multiplier, minBet, maxBet } = req.body;
+    const { basePrize, multiplier, minBet, maxBet, maintenanceMode } = req.body;
 
     let settings = await GameSettings.findOne();
     if (!settings) {
@@ -943,6 +981,7 @@ app.put('/api/game/settings', authenticate, checkAdmin, asyncHandler(async (req,
     if (multiplier !== undefined) settings.multiplier = multiplier;
     if (minBet !== undefined) settings.minBet = minBet;
     if (maxBet !== undefined) settings.maxBet = maxBet;
+    if (maintenanceMode !== undefined) settings.maintenanceMode = maintenanceMode;
 
     await settings.save();
 
@@ -952,7 +991,7 @@ app.put('/api/game/settings', authenticate, checkAdmin, asyncHandler(async (req,
     });
 }));
 
-// Admin Routes
+// Rotas de Administração
 app.get('/api/users', authenticate, checkAdmin, asyncHandler(async (req, res) => {
     const { page = 1, limit = 20, search, sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
     
@@ -1093,6 +1132,31 @@ app.put('/api/users/:id/remove-admin', authenticate, checkAdmin, asyncHandler(as
     });
 }));
 
+app.delete('/api/users/:id', authenticate, checkAdmin, asyncHandler(async (req, res) => {
+    if (req.user._id.toString() === req.params.id) {
+        return res.status(400).json({
+            success: false,
+            error: 'You cannot delete your own account',
+            code: 'SELF_DELETION'
+        });
+    }
+
+    const result = await User.deleteOne({ _id: req.params.id });
+    
+    if (result.deletedCount === 0) {
+        return res.status(404).json({
+            success: false,
+            error: 'User not found',
+            code: 'USER_NOT_FOUND'
+        });
+    }
+
+    res.json({ 
+        success: true, 
+        message: 'User deleted successfully'
+    });
+}));
+
 app.get('/api/bets/all', authenticate, checkAdmin, asyncHandler(async (req, res) => {
     const { page = 1, limit = 20, userId, warframeId } = req.query;
     
@@ -1121,12 +1185,22 @@ app.get('/api/bets/all', authenticate, checkAdmin, asyncHandler(async (req, res)
     });
 }));
 
-// Static Routes
+app.delete('/api/bets/all', authenticate, checkAdmin, asyncHandler(async (req, res) => {
+    const result = await Bet.deleteMany();
+    
+    res.json({ 
+        success: true, 
+        message: `All bets (${result.deletedCount}) have been removed`,
+        deletedCount: result.deletedCount
+    });
+}));
+
+// Rota de fallback
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Error Handling
+// Manipulador de erros
 app.use((err, req, res, next) => {
     console.error('💥 Error:', err);
     res.status(500).json({ 
@@ -1136,12 +1210,13 @@ app.use((err, req, res, next) => {
     });
 });
 
-// Server Startup
+// Inicialização do servidor
 const server = app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
     console.log(`🔗 Access: http://localhost:${PORT}`);
 });
 
+// Manipuladores de eventos do processo
 process.on('unhandledRejection', (err) => {
     console.error('💥 Unhandled rejection:', err);
     server.close(() => process.exit(1));
@@ -1150,4 +1225,20 @@ process.on('unhandledRejection', (err) => {
 process.on('uncaughtException', (err) => {
     console.error('💥 Uncaught exception:', err);
     server.close(() => process.exit(1));
+});
+
+process.on('SIGTERM', () => {
+    console.log('🛑 SIGTERM received. Shutting down gracefully...');
+    server.close(() => {
+        console.log('🔴 Server terminated');
+        process.exit(0);
+    });
+});
+
+process.on('SIGINT', () => {
+    console.log('🛑 SIGINT received. Shutting down gracefully...');
+    server.close(() => {
+        console.log('🔴 Server terminated');
+        process.exit(0);
+    });
 });
