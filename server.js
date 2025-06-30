@@ -1,21 +1,29 @@
-require('dotenv').config();
-const express = require('express');
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const cors = require('cors');
-const path = require('path');
-
 const app = express();
-const PORT = process.env.PORT || 3000;
+const port = process.env.PORT || 5000;
+const JWT_SECRET = process.env.JWT_SECRET || 'Chave_secreta$$%';
 
-// Configuração do CORS
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 app.use(cors({
-    origin: ['https://overlord-5uso.onrender.com', 'http://localhost:3000'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+
+console.log('Verificando variáveis de ambiente...');
+if (!process.env.MONGODB_URI) {
+  console.warn('AVISO: Variável de ambiente MONGODB_URI não definida. Usando URI padrão local.');
+}
+
+const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/suporte-app';
+console.log(`Tentando conectar ao MongoDB: ${uri.substring(0, 20)}...`);
+
+mongoose.connect(uri)
+  .then(() => console.log('Conectado ao MongoDB com sucesso!'))
+  .catch(err => {
+    console.error('Erro ao conectar ao MongoDB:', err);
+    console.log('Verifique se o MongoDB está rodando e se a URI está correta.');
+  });
 
 // Middlewares
 app.use(express.json({ limit: '10mb' }));
