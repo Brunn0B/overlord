@@ -10,33 +10,32 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Enhanced CORS Configuration
+// Substitua a configuração de CORS por esta:
 app.use(cors({
-    origin: function(origin, callback) {
-        // Allow all origins in development
-        if (!origin && process.env.NODE_ENV !== 'production') {
-            return callback(null, true);
-        }
-        
-        // Allowed origins list
-        const allowedOrigins = [
-            'https://overlord-5uso.onrender.com',
-            'http://localhost:3000',
-            'http://127.0.0.1:3000',
-            'http://localhost:5500',
-            'http://127.0.0.1:5500'
-        ];
-        
-        if (allowedOrigins.includes(origin) || !origin) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
+    origin: [
+        'https://overlord-vrvt.onrender.com',
+        'http://localhost:3000',
+        'http://localhost:5500'
+    ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
-    optionsSuccessStatus: 200
+    credentials: true
 }));
+
+// Adicione esta rota no início para configurar a URL base dinamicamente
+app.use((req, res, next) => {
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+    const host = req.headers['x-forwarded-host'] || req.get('host');
+    req.baseUrl = `${protocol}://${host}`;
+    next();
+});
+
+// Adicione esta rota para fornecer a configuração ao frontend
+app.get('/api/config', (req, res) => {
+    res.json({
+        apiUrl: req.baseUrl
+    });
+});
 
 // Optimized Middlewares
 app.use(express.json({ limit: '10mb' }));
@@ -603,21 +602,41 @@ app.get('/api/bets', authenticate, asyncHandler(async (req, res) => {
     });
 }));
 
-app.get("/api/bets/stats", authenticate, asyncHandler(async (req, res) => {
+app.get('/api/bets/stats', authenticate, asyncHandler(async (req, res) => {
     const stats = await Bet.aggregate([
         { $match: { userId: req.user._id } },
         {
             $group: {
-                _id: null, // Agrupa todos os documentos para o usuário atual
-                totalAmountBet: { $sum: "$amount" },
-                totalTicketsBought: { $sum: "$tickets" },
-                // Adicione outras estatísticas que você deseja calcular aqui
+                _id: null,
+                totalBets: { $sum: 1 },
+                totalAmount: { $sum: "$amount" },
+                favoriteWarframe: { 
+                    $max: {
+                        count: { $sum: 1 },
+                        warframe: "$warframeName"
+                    }
+                }
+            }
+        },
+        {
+            $project: {
+                _id: 0,
+                totalBets: 1,
+                totalAmount: 1,
+                favoriteWarframe: "$favoriteWarframe.warframe"
             }
         }
     ]);
-    res.json({ success: true, data: stats });
-}));
 
+    res.json({ 
+        success: true, 
+        data: stats[0] || {
+            totalBets: 0,
+            totalAmount: 0,
+            favoriteWarframe: null
+        }
+    });
+}));
 
 // Tournament Routes
 app.post('/api/tournament/register', authenticate, asyncHandler(async (req, res) => {
